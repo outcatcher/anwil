@@ -1,0 +1,47 @@
+openapi: 3.0.1
+
+info:
+  title: Anton's WishList
+  version: 0.0.1
+
+servers:
+  - url: "http://localhost:8010/api/v1"
+    description: Local server on the default port
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    Unauthorized:
+      content:
+        text/plain:
+          example: Unauthorized
+
+security:
+  - BearerAuth: []
+
+paths:
+  /echo:
+    get:
+      summary: Echo endpoint
+      description: Checking server availability
+      security:
+      responses:
+        "200":
+          content:
+            text/plain:
+              example: OK
+  /auth-echo:
+    get:
+      summary: Secure echo endpoint
+      description: Checking authorized server availability
+      responses:
+        "200":
+          content:
+            text/plain:
+              example: OK
+        "401":
+          $ref: '#/components/schemas/Unauthorized'

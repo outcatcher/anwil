@@ -1,0 +1,37 @@
+run:
+  deadline: 5m
+
+linters:
+  enable-all: true
+  disable:
+    # deprecated
+    - varnamelen
+    - testpackage
+    - golint
+    - interfacer
+    - structcheck
+    - maligned
+    - scopelint
+    - nosnakecase
+    - deadcode
+    - varcheck
+    - ifshort
+    - exhaustivestruct
+    - rowserrcheck
+    - structcheck
+    - wastedassign
+    # meaningfully disabled
+    - ireturn # returning generics
+    - gochecknoglobals
+    - exhaustruct
+
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: snake
+        yaml: snake
+
+issues:
+  exclude-use-default: false
