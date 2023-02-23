@@ -1,4 +1,0 @@
----
-host: localhost
-port: 8010
-key_storage_path: "./.keys/ed25519"

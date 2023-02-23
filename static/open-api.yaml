@@ -14,11 +14,35 @@ components:
       type: http
       scheme: bearer
 
+  requestBodies:
+    UserCreateRequestBody:
+      description: New user data
+      required: yes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserCreateRequestBodyData'
+
+
   schemas:
     Unauthorized:
+      description: Unauthorized
       content:
         text/plain:
           example: Unauthorized
+    UserRegisterRequestBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        full_name:
+          type: string
+      required:
+        - username
+        - password
+        - full_name
 
 security:
   - BearerAuth: []
@@ -45,3 +69,14 @@ paths:
               example: OK
         "401":
           $ref: '#/components/schemas/Unauthorized'
+  /user:
+    post:
+      summary: Register new user
+      security:
+      requestBody:
+        $ref: '#/components/requestBodies/UserRegisterRequestBody'
+      responses:
+        "201":
+          description: User successfully created
+        "409":
+          description: User already exist

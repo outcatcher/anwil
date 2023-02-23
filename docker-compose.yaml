@@ -1,0 +1,51 @@
+services:
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    restart: always
+    image: postgres:15.2-alpine3.17
+    volumes:
+      - "/opt/postgres_storage:/var/lib/postgresql/data"
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    environment:
+      POSTGRES_USER: anwil
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+    command: "-p ${POSTGRES_PORT}"
+    healthcheck:
+      test: nc postgres ${POSTGRES_PORT} -zv || exit 1
+      retries: 3
+      interval: 5s
+      start_period: 5s
+
+  migrate:
+    container_name: migrate
+    restart: "no"
+    build:
+      context: .
+      dockerfile: migrate.Dockerfile
+    environment:
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    container_name: api
+    restart: always
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    environment:
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      GIN_MODE: release
+    ports:
+      - 8010:8010
+    depends_on:
+      migrate:
+        condition: service_completed_successfully

@@ -12,14 +12,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"path/filepath"
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/api/handlers"
-	"github.com/outcatcher/anwil/config"
+	"github.com/outcatcher/anwil/domains/api"
 )
 
 const defaultTimeout = time.Minute
@@ -39,32 +36,24 @@ func main() {
 
 	log.Printf("using configuration at %s", configPath)
 
-	if err := exec(configPath); err != nil {
+	if err := exec(context.Background(), configPath); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func exec(configPath string) error {
-	cfg, err := config.LoadServerConfiguration(path.Clean(configPath))
-	if err != nil {
-		return fmt.Errorf("error loading server config: %w", err)
-	}
-
+func exec(ctx context.Context, configPath string) error {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
-	router, err := handlers.NewRouter(".", cfg, gin.Logger(), gin.Recovery())
+	state, err := api.Init(ctx, configPath)
 	if err != nil {
-		return fmt.Errorf("error creating new router: %w", err)
+		return fmt.Errorf("error initializing API: %w", err)
 	}
 
-	server := http.Server{ //nolint:exhaustruct
-		Addr:              fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Handler:           router,
-		ReadHeaderTimeout: defaultTimeout,
+	server, err := state.Serve() //nolint:contextcheck
+	if err != nil {
+		return fmt.Errorf("error serving HTTP: %w", err)
 	}
-
-	log.Printf("Anwil API server started at http://%s", server.Addr)
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()

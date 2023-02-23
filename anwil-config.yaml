@@ -1,0 +1,15 @@
+---
+api:
+    host: ""
+    port: 8010
+    staticPath: ./static
+
+db:
+    host: postgres
+    port: 6634
+    username: anwil
+    databaseName: anwil
+    migrationsDir: ./migrations
+
+privateKeyPath: ./.keys/ed25519
+debug: yes

@@ -24,6 +24,7 @@ linters:
     - ireturn # returning generics
     - gochecknoglobals
     - exhaustruct
+    - nosprintfhostport # not supporting ipv6 addresses in configuration
 
 linters-settings:
   tagliatelle:
@@ -31,7 +32,14 @@ linters-settings:
       use-field-name: true
       rules:
         json: snake
-        yaml: snake
+        yaml: camel
 
 issues:
   exclude-use-default: false
+  exclude-rules:
+    - path: .+_test\.go
+      linters:
+        - bodyclose  # we use close it in a helper method
+    - linters:
+        - godox
+      text: "TODO"
