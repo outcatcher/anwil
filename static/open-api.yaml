@@ -17,19 +17,20 @@ components:
   requestBodies:
     UserCreateRequestBody:
       description: New user data
-      required: yes
+      required: true
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/UserCreateRequestBodyData'
 
-
-  schemas:
+  responses:
     Unauthorized:
       description: Unauthorized
       content:
         text/plain:
           example: Unauthorized
+
+  schemas:
     UserRegisterRequestBody:
       type: object
       properties:
@@ -52,9 +53,10 @@ paths:
     get:
       summary: Echo endpoint
       description: Checking server availability
-      security:
+      security: []
       responses:
         "200":
+          description: Ok
           content:
             text/plain:
               example: OK
@@ -64,15 +66,16 @@ paths:
       description: Checking authorized server availability
       responses:
         "200":
+          description: "OK"
           content:
             text/plain:
               example: OK
         "401":
-          $ref: '#/components/schemas/Unauthorized'
+          $ref: '#/components/responses/Unauthorized'
   /user:
     post:
       summary: Register new user
-      security:
+      security: []
       requestBody:
         $ref: '#/components/requestBodies/UserRegisterRequestBody'
       responses:

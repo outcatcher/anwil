@@ -48,7 +48,7 @@ type AnwilSuite struct {
 	apiHandler http.HandlerFunc
 }
 
-// requestJSON sends request with `content-type: application/json`
+// requestJSON sends request with `content-type: application/json`.
 func (s *AnwilSuite) requestJSON(
 	method string, url *url.URL, body any, headers map[string]string,
 ) *httptest.ResponseRecorder {

@@ -8,7 +8,7 @@ db:
     host: postgres
     port: 6634
     username: anwil
-    databaseName: anwil
+    databaseName: postgres
     migrationsDir: ./migrations
 
 privateKeyPath: ./.keys/ed25519

@@ -4,3 +4,4 @@
 *coverage.html
 *coverage.out
 .keys
+.env

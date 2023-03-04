@@ -14,10 +14,12 @@ var (
 	errServiceWithoutStorage = errors.New("given service does not support storage")
 )
 
+// WithStorage defines service or state having storage attached.
 type WithStorage interface {
 	Storage() QueryExecutor
 }
 
+// RequiresStorage defines service which can use storage attached.
 type RequiresStorage interface {
 	UseStorage(executor QueryExecutor)
 }
@@ -39,6 +41,7 @@ func InitWithStorage(serv, state interface{}) error {
 	return nil
 }
 
+// QueryExecutor interface describing sqlx.DB or sqlx.Tx in scope of the project.
 type QueryExecutor interface {
 	sqlx.ExtContext
 

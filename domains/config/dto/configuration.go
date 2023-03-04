@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 )
 
+const encodedPrivateKeyLen = 128
+
 var (
 	errStateWithoutConfig   = errors.New("given state has no config")
 	errServiceWithoutConfig = errors.New("given service does not support config")
@@ -90,7 +92,10 @@ func loadPrivateKey(privateKeyPath string) (ed25519.PrivateKey, error) {
 		}
 	}()
 
-	keyData, err := io.ReadAll(keyFile)
+	// reading with fixed size allows file to have \n or \r\n after key data
+	keyData := make([]byte, encodedPrivateKeyLen)
+
+	_, err = io.ReadFull(keyFile, keyData)
 	if err != nil {
 		return nil, fmt.Errorf("error reading private key file: %w", err)
 	}
