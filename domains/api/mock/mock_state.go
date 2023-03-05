@@ -1,3 +1,6 @@
+/*
+Package mock contains mock implementation of state.
+*/
 package mock
 
 import (
@@ -110,7 +113,7 @@ func (m *mockState) initServices() {
 }
 
 // NewAPIMock generates new API state for testing purposes.
-func NewAPIMock(t *testing.T) *mockState {
+func NewAPIMock(t *testing.T) *mockState { //nolint:revive
 	t.Helper()
 
 	err := os.MkdirAll(mockTMPDir, os.ModePerm)

@@ -15,7 +15,7 @@ const (
 )
 
 // ValidateToken validates token and return JWT payload data.
-func (a *auth) ValidateToken(tokenString dto.Token) (*dto.Claims, error) {
+func (a *auth) ValidateToken(tokenString string) (*dto.Claims, error) {
 	claims := new(dto.Claims)
 
 	_, err := jwt.ParseWithClaims(string(tokenString), claims, func(token *jwt.Token) (interface{}, error) {
@@ -44,7 +44,7 @@ func defaultClaims() jwt.RegisteredClaims {
 }
 
 // GenerateToken generates token with given claims.
-func (a *auth) GenerateToken(claims *dto.Claims) (dto.Token, error) {
+func (a *auth) GenerateToken(claims *dto.Claims) (string, error) {
 	if claims == nil {
 		claims = new(dto.Claims)
 	}
@@ -62,5 +62,5 @@ func (a *auth) GenerateToken(claims *dto.Claims) (dto.Token, error) {
 		return "", fmt.Errorf("error creating signed string: %w", err)
 	}
 
-	return dto.Token(tokenString), nil
+	return tokenString, nil
 }

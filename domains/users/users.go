@@ -54,13 +54,13 @@ func (u *users) GetUserToken(ctx context.Context, user dto.User) (string, error)
 
 	err = u.auth.ValidatePassword(user.Password, existing.Password)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error validating user credentials: %w", err)
 	}
 
 	tok, err := u.auth.GenerateToken(&authDTO.Claims{Username: user.Username})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error generating user token: %w", err)
 	}
 
-	return string(tok), nil
+	return tok, nil
 }
