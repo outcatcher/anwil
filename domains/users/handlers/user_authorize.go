@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"database/sql"
 	"errors"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	auth "github.com/outcatcher/anwil/domains/auth/dto"
 	users "github.com/outcatcher/anwil/domains/users/dto"
 )
 
@@ -22,7 +20,7 @@ type jwtResponse struct {
 	Token string `json:"token"`
 }
 
-func handleAuthorize(usr users.Service, authentication auth.Service) gin.HandlerFunc {
+func handleAuthorize(usr users.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := new(credentialsRequest)
 
@@ -41,30 +39,20 @@ func handleAuthorize(usr users.Service, authentication auth.Service) gin.Handler
 			return
 		}
 
-		user, err := usr.GetUser(c.Request.Context(), req.Username)
-		if errors.Is(err, sql.ErrNoRows) {
-			c.String(http.StatusUnauthorized, "no user %s exists", req.Username)
-			c.Abort()
-
-			return
+		user := users.User{
+			Username: req.Username,
+			Password: req.Password,
 		}
 
-		if err != nil {
+		tok, err := usr.GetUserToken(c.Request.Context(), user)
+		if errors.Is(err, users.ErrNoSuchUser) || errors.Is(err, users.ErrInvalidPassword) {
 			log.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-
-			return
-		}
-
-		err = authentication.ValidatePassword(req.Password, user.Password)
-		if err != nil {
-			c.String(http.StatusUnauthorized, "invalid password")
+			c.AbortWithStatus(http.StatusUnauthorized)
 			c.Abort()
 
 			return
 		}
 
-		tok, err := authentication.GenerateToken(&auth.Claims{Username: req.Username})
 		if err != nil {
 			log.Println(err)
 			c.AbortWithStatus(http.StatusInternalServerError)

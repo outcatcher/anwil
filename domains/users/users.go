@@ -2,8 +2,11 @@ package users
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
+	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	"github.com/outcatcher/anwil/domains/users/dto"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
@@ -40,4 +43,24 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 	}
 
 	return nil
+}
+
+// GetUserToken validates user credentials and returns token.
+func (u *users) GetUserToken(ctx context.Context, user dto.User) (string, error) {
+	existing, err := u.GetUser(ctx, user.Username)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", fmt.Errorf("%s: %w", user.Username, dto.ErrNoSuchUser)
+	}
+
+	err = u.auth.ValidatePassword(user.Password, existing.Password)
+	if err != nil {
+		return "", err
+	}
+
+	tok, err := u.auth.GenerateToken(&authDTO.Claims{Username: user.Username})
+	if err != nil {
+		return "", err
+	}
+
+	return string(tok), nil
 }

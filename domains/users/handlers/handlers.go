@@ -12,7 +12,11 @@ import (
 // AddUserHandlers - adds user-related endpoints.
 func AddUserHandlers(state dto.WithUsers) services.AddHandlersFunc {
 	return func(baseGroup, secGroup *gin.RouterGroup) error {
-		baseGroup.POST("/wisher", handleUserRegister(state.Users()))
+		users := state.Users()
+
+		baseGroup.POST("/login", handleAuthorize(users))
+
+		baseGroup.POST("/wisher", handleUserRegister(users))
 
 		return nil
 	}

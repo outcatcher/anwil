@@ -10,10 +10,8 @@ import (
 )
 
 // AddAuthHandlers adds authentication-related endpoints.
-func AddAuthHandlers(state dto.State) services.AddHandlersFunc {
+func AddAuthHandlers(_ dto.State) services.AddHandlersFunc {
 	return func(baseGroup, _ *gin.RouterGroup) error {
-		baseGroup.POST("/token", handleAuthorize(state.Users(), state.Authentication()))
-
 		return nil
 	}
 }

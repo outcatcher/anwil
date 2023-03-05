@@ -22,6 +22,7 @@ type Service interface {
 
 	GetUser(ctx context.Context, username string) (*User, error)
 	SaveUser(ctx context.Context, user User) error
+	GetUserToken(ctx context.Context, user User) (string, error)
 }
 
 // WithUsers can return users service instance.

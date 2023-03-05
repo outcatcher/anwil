@@ -12,6 +12,9 @@ var (
 	errServiceWithoutAuth = errors.New("given service does not support auth")
 )
 
+// Token contains JWT in hex format.
+type Token string
+
 // WithAuth can return auth service instance.
 type WithAuth interface {
 	Authentication() Service
@@ -46,6 +49,6 @@ type Service interface {
 
 	EncryptPassword(src string) (string, error)
 	ValidatePassword(input, encrypted string) error
-	ValidateToken(tokenString string) (*Claims, error)
-	GenerateToken(claims *Claims) (string, error)
+	ValidateToken(token Token) (*Claims, error)
+	GenerateToken(claims *Claims) (Token, error)
 }
