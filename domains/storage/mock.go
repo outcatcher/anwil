@@ -20,9 +20,10 @@ type MockDBExecutor struct {
 	expectedRow   *sqlx.Row
 	expectedDest  interface{}
 
-	affectedRowsResult sql.Result
+	affectedRowsResult driver.RowsAffected
 }
 
+// GetContext mocks sqlx.DB GetContext method, loading m.expectedDest to dest.
 func (m *MockDBExecutor) GetContext(_ context.Context, dest interface{}, _ string, _ ...interface{}) error {
 	// hack for copying public fields
 	data, err := json.Marshal(m.expectedDest)
@@ -37,6 +38,7 @@ func (m *MockDBExecutor) GetContext(_ context.Context, dest interface{}, _ strin
 	return m.expectedError
 }
 
+// NamedExecContext returns m.affectedRowsResult, m.expectedError.
 func (m *MockDBExecutor) NamedExecContext(context.Context, string, interface{}) (sql.Result, error) {
 	return m.affectedRowsResult, m.expectedError
 }
@@ -82,30 +84,35 @@ func (m *MockDBExecutor) ExecContext(context.Context, string, ...interface{}) (s
 	return m.affectedRowsResult, m.expectedError
 }
 
+// WithError sets expectedError.
 func (m *MockDBExecutor) WithError(err error) *MockDBExecutor {
 	m.expectedError = err
 
 	return m
 }
 
-func (m *MockDBExecutor) WithExpectedResult(result sql.Result) *MockDBExecutor {
+// WithExpectedResult sets affectedRowsResult.
+func (m *MockDBExecutor) WithExpectedResult(result driver.RowsAffected) *MockDBExecutor {
 	m.affectedRowsResult = result
 
 	return m
 }
 
+// WithExpectedRows sets expectedRows.
 func (m *MockDBExecutor) WithExpectedRows(rows *sqlx.Rows) *MockDBExecutor {
 	m.expectedRows = rows
 
 	return m
 }
 
+// WithExpectedRow sets expectedRow.
 func (m *MockDBExecutor) WithExpectedRow(row *sqlx.Row) *MockDBExecutor {
 	m.expectedRow = row
 
 	return m
 }
 
+// WithAffectedRowsResult sets affectedRowsResult.
 func (m *MockDBExecutor) WithAffectedRowsResult(affected driver.RowsAffected) {
 	m.affectedRowsResult = affected
 }

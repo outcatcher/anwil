@@ -7,12 +7,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
+	services "github.com/outcatcher/anwil/domains/services/dto"
 )
 
-var (
-	errInvalidPassword   = errors.New("invalid password")
-	errMissingPrivateKey = errors.New("missing private key")
-)
+var errMissingPrivateKey = errors.New("missing private key")
 
 func encrypt(src string, key ed25519.PrivateKey) ([]byte, error) {
 	if len(key) == 0 {
@@ -51,7 +50,7 @@ func (a *auth) ValidatePassword(input, encrypted string) error {
 	}
 
 	if !hmac.Equal(macInput, macCompared) {
-		return errInvalidPassword
+		return fmt.Errorf("%w: invalid password", services.ErrUnauthorized)
 	}
 
 	return nil

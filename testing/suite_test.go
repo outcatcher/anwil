@@ -22,7 +22,6 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api"
-	apiDTO "github.com/outcatcher/anwil/domains/api/dto"
 	"github.com/outcatcher/anwil/domains/config"
 	storageDTO "github.com/outcatcher/anwil/domains/config/dto"
 	"github.com/outcatcher/anwil/domains/storage"
@@ -122,7 +121,7 @@ func (s *AnwilSuite) SetupSuite() {
 
 	createDebugUser(t, ctx, apiState)
 
-	router, err := apiState.NewRouter(ctx)
+	router, err := apiState.NewRouter()
 	require.NoError(t, err)
 
 	// gin engine as a handler function
@@ -247,7 +246,7 @@ func waitForDBUp(t *testing.T, ctx context.Context, dockerClient *client.Client,
 	}
 }
 
-func createDebugUser(t *testing.T, ctx context.Context, state apiDTO.State) {
+func createDebugUser(t *testing.T, ctx context.Context, state usersDTO.WithUsers) {
 	err := state.Users().SaveUser(ctx, usersDTO.User{
 		Username: debugUsername,
 		Password: debugPassword,

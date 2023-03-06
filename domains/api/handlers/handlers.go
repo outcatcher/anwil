@@ -9,10 +9,12 @@ import (
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/api/dto"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
+	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	authHandlers "github.com/outcatcher/anwil/domains/auth/handlers"
+	configDTO "github.com/outcatcher/anwil/domains/config/dto"
 	services "github.com/outcatcher/anwil/domains/services/dto"
+	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
 )
 
@@ -21,21 +23,25 @@ func handleStatic(engine *gin.Engine, basePath string) {
 	engine.LoadHTMLGlob(filepath.Join(basePath, "*"))
 }
 
+type handlersState interface {
+	usersDTO.WithUsers
+	authDTO.WithAuth
+	configDTO.WithConfig
+}
+
 type handlers struct {
-	state dto.State
+	state handlersState
 
 	baseGroup *gin.RouterGroup
 	secGroup  *gin.RouterGroup
 }
 
-func newHandlers(state dto.State, engine *gin.Engine, baseAPIPath string) *handlers {
+func newHandlers(state handlersState, engine *gin.Engine, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
-	h.baseGroup = engine.Group(baseAPIPath, middlewares.RequireJSON)
+	h.baseGroup = engine.Group(baseAPIPath, middlewares.ConvertErrors, middlewares.RequireJSON)
 
-	authentication := state.Authentication()
-
-	h.secGroup = h.baseGroup.Group("/", middlewares.JWTAuth(authentication))
+	h.secGroup = h.baseGroup.Group("/", middlewares.JWTAuth(state))
 
 	return h
 }
@@ -61,7 +67,7 @@ func (h *handlers) populateCommon() {
 }
 
 // PopulateEndpoints populates endpoints for API.
-func PopulateEndpoints(engine *gin.Engine, state dto.State) error {
+func PopulateEndpoints(engine *gin.Engine, state handlersState) error {
 	handleStatic(engine, state.Config().API.StaticPath)
 
 	apiHandlers := newHandlers(state, engine, "/api/v1")

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -33,7 +32,7 @@ func handleAuthorize(usr users.Service) gin.HandlerFunc {
 		}
 
 		if req.Username == "" || req.Password == "" {
-			c.String(http.StatusBadRequest, "missing credentialsRequest")
+			c.String(http.StatusBadRequest, "missing credentials")
 			c.Abort()
 
 			return
@@ -45,17 +44,8 @@ func handleAuthorize(usr users.Service) gin.HandlerFunc {
 		}
 
 		tok, err := usr.GetUserToken(c.Request.Context(), user)
-		if errors.Is(err, users.ErrNoSuchUser) || errors.Is(err, users.ErrInvalidPassword) {
-			log.Println(err)
-			c.AbortWithStatus(http.StatusUnauthorized)
-			c.Abort()
-
-			return
-		}
-
 		if err != nil {
-			log.Println(err)
-			c.AbortWithStatus(http.StatusInternalServerError)
+			_ = c.Error(err)
 
 			return
 		}

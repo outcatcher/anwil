@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
+	services "github.com/outcatcher/anwil/domains/services/dto"
 	"github.com/outcatcher/anwil/domains/users/dto"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
@@ -49,7 +50,7 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 func (u *users) GetUserToken(ctx context.Context, user dto.User) (string, error) {
 	existing, err := u.GetUser(ctx, user.Username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%s: %w", user.Username, dto.ErrNoSuchUser)
+		return "", fmt.Errorf("%s: %w", user.Username, services.ErrNotFound)
 	}
 
 	err = u.auth.ValidatePassword(user.Password, existing.Password)

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,17 +22,22 @@ import (
 
 const defaultTimeout = time.Minute
 
+// State holds general application state.
 type State struct {
 	cfg *configDTO.Configuration
 
-	storage        storageDTO.QueryExecutor
-	serviceMapping map[serviceID]interface{}
+	storage storageDTO.QueryExecutor
+
+	serviceMapping     map[serviceID]interface{}
+	serviceMappingLock sync.Mutex
 }
 
-func (s *State) Serve() (*http.Server, error) {
+// Server creates new API server instance.
+func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
-	router, err := s.NewRouter(gin.Logger(), gin.Recovery())
+	// context is passed as BaseContext
+	router, err := s.NewRouter(gin.Logger(), gin.Recovery()) //nolint:contextcheck
 	if err != nil {
 		return nil, fmt.Errorf("error creating new router: %w", err)
 	}
@@ -39,6 +46,7 @@ func (s *State) Serve() (*http.Server, error) {
 		Addr:              fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port),
 		Handler:           router,
 		ReadHeaderTimeout: defaultTimeout,
+		BaseContext:       func(_ net.Listener) context.Context { return ctx },
 	}
 
 	loggedAddr := server.Addr
@@ -71,14 +79,21 @@ func (s *State) Config() *configDTO.Configuration {
 
 // Authentication service.
 func (s *State) Authentication() authDTO.Service {
+	s.serviceMappingLock.Lock()
+	defer s.serviceMappingLock.Unlock()
+
 	return s.serviceMapping[serviceAuth].(authDTO.Service) //nolint:forcetypeassert
 }
 
 // Users service.
 func (s *State) Users() usersDTO.Service {
+	s.serviceMappingLock.Lock()
+	defer s.serviceMappingLock.Unlock()
+
 	return s.serviceMapping[serviceUsers].(usersDTO.Service) //nolint:forcetypeassert
 }
 
+// Storage returns shared query executor (i.e. *sqlx.DB).
 func (s *State) Storage() storageDTO.QueryExecutor {
 	return s.storage
 }

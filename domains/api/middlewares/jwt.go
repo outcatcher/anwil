@@ -18,7 +18,7 @@ const (
 )
 
 // JWTAuth check JWT and loads user info into Gin context.
-func JWTAuth(auth dto.Service) gin.HandlerFunc {
+func JWTAuth(state dto.WithAuth) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader(authHeader)
 
@@ -33,7 +33,7 @@ func JWTAuth(auth dto.Service) gin.HandlerFunc {
 
 		tokenString := strings.TrimPrefix(header, tokenPrefix)
 
-		claims, err := auth.ValidateToken(tokenString)
+		claims, err := state.Authentication().ValidateToken(tokenString)
 		if err != nil {
 			log.Println("error in JWT:", err)
 

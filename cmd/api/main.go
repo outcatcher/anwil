@@ -50,7 +50,7 @@ func exec(ctx context.Context, configPath string) error {
 		return fmt.Errorf("error initializing API: %w", err)
 	}
 
-	server, err := state.Serve() //nolint:contextcheck
+	server, err := state.Server(ctx)
 	if err != nil {
 		return fmt.Errorf("error serving HTTP: %w", err)
 	}

@@ -28,6 +28,7 @@ type WithConfig interface {
 	Config() *Configuration
 }
 
+// RequiresConfig can use configuration.
 type RequiresConfig interface {
 	UseConfig(*Configuration)
 }

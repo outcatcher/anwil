@@ -62,7 +62,7 @@ func (m *mockState) Storage() storageDTO.QueryExecutor {
 }
 
 func (m *mockState) Serve(context.Context) (*http.Server, error) {
-	return nil, fmt.Errorf("(Serve): %w", errNotImplemented)
+	return nil, fmt.Errorf("(Server): %w", errNotImplemented)
 }
 
 func (m *mockState) NewRouter(context.Context, ...gin.HandlerFunc) (*gin.Engine, error) {

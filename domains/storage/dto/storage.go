@@ -1,3 +1,6 @@
+/*
+Package dto contains storage-related DTOs
+*/
 package dto
 
 import (

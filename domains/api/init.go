@@ -19,7 +19,9 @@ func (s *State) initServices() error {
 			return fmt.Errorf("error initializing service %s: %w", id, err)
 		}
 
+		s.serviceMappingLock.Lock()
 		s.serviceMapping[id] = svc
+		s.serviceMappingLock.Unlock()
 	}
 
 	return nil

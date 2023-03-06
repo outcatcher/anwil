@@ -2,11 +2,13 @@ package auth
 
 import (
 	"crypto/ed25519"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/outcatcher/anwil/domains/auth/dto"
+	services "github.com/outcatcher/anwil/domains/services/dto"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 func (a *auth) ValidateToken(tokenString string) (*dto.Claims, error) {
 	claims := new(dto.Claims)
 
-	_, err := jwt.ParseWithClaims(string(tokenString), claims, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodEd25519)
 		if !ok {
 			return nil, fmt.Errorf("%w: %s", dto.ErrUnexpectedSignMethod, token.Header["alg"])
@@ -27,6 +29,12 @@ func (a *auth) ValidateToken(tokenString string) (*dto.Claims, error) {
 		return a.privateKey.Public(), nil
 	})
 	if err != nil {
+		var validationErr *jwt.ValidationError
+
+		if errors.As(err, &validationErr) {
+			return nil, fmt.Errorf("error validating JWT: %w (%s)", services.ErrUnauthorized, err.Error())
+		}
+
 		return nil, fmt.Errorf("error validating JWT: %w", err)
 	}
 
