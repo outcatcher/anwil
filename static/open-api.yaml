@@ -1,0 +1,85 @@
+openapi: 3.0.1
+
+info:
+  title: Anton's WishList
+  version: 0.0.1
+
+servers:
+  - url: "http://localhost:8010/api/v1"
+    description: Local server on the default port
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  requestBodies:
+    UserCreateRequestBody:
+      description: New user data
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserCreateRequestBodyData'
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        text/plain:
+          example: Unauthorized
+
+  schemas:
+    UserRegisterRequestBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        full_name:
+          type: string
+      required:
+        - username
+        - password
+        - full_name
+
+security:
+  - BearerAuth: []
+
+paths:
+  /echo:
+    get:
+      summary: Echo endpoint
+      description: Checking server availability
+      security: []
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/plain:
+              example: OK
+  /auth-echo:
+    get:
+      summary: Secure echo endpoint
+      description: Checking authorized server availability
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              example: OK
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+  /user:
+    post:
+      summary: Register new user
+      security: []
+      requestBody:
+        $ref: '#/components/requestBodies/UserRegisterRequestBody'
+      responses:
+        "201":
+          description: User successfully created
+        "409":
+          description: User already exist

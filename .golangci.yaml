@@ -1,0 +1,45 @@
+run:
+  deadline: 5m
+
+linters:
+  enable-all: true
+  disable:
+    # deprecated
+    - varnamelen
+    - testpackage
+    - golint
+    - interfacer
+    - structcheck
+    - maligned
+    - scopelint
+    - nosnakecase
+    - deadcode
+    - varcheck
+    - ifshort
+    - exhaustivestruct
+    - rowserrcheck
+    - structcheck
+    - wastedassign
+    # meaningfully disabled
+    - ireturn # returning generics
+    - gochecknoglobals
+    - exhaustruct
+    - nosprintfhostport # not supporting ipv6 addresses in configuration
+
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        json: snake
+        yaml: camel
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - path: .+_test\.go
+      linters:
+        - bodyclose  # we use close it in a helper method
+    - linters:
+        - godox
+      text: "TODO"

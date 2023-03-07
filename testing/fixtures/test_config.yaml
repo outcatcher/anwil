@@ -1,0 +1,13 @@
+api:
+  staticPath: ../static
+
+db:
+  host: localhost
+  port: 6653
+  username: test
+  password: testertest!
+  databaseName: anwil
+  migrationsDir: ../migrations
+
+privateKeyPath: "./fixtures/ed25519"
+debug: yes
