@@ -12,6 +12,7 @@ import (
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
 
+// GetUser returns user data by username.
 func (u *users) GetUser(ctx context.Context, username string) (*dto.User, error) {
 	user, err := u.storage.GetUser(ctx, username)
 	if err != nil {

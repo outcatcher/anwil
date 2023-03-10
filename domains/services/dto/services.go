@@ -7,6 +7,7 @@ import "fmt"
 
 // Service - base interface for service to adhere.
 type Service interface {
+	// Init initialized service instance with given state.
 	Init(state interface{}) error
 }
 

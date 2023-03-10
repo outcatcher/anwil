@@ -16,14 +16,17 @@ type users struct {
 	auth authDTO.Service
 }
 
+// UseAuthentication - use given service as an auth service for users.
 func (u *users) UseAuthentication(auth authDTO.Service) {
 	u.auth = auth
 }
 
+// UseStorage attaches given DB storage to the service.
 func (u *users) UseStorage(db storageDTO.QueryExecutor) {
 	u.storage = userStorage.New(db)
 }
 
+// Init initialized user instance with given state.
 func (u *users) Init(state interface{}) error {
 	err := services.InitializeWith(
 		u, state,

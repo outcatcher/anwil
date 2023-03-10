@@ -38,6 +38,7 @@ func (a *auth) EncryptPassword(src string) (string, error) {
 	return hex.EncodeToString(encrypted), nil
 }
 
+// ValidatePassword compares given password to be equal with a given encrypted password.
 func (a *auth) ValidatePassword(input, encrypted string) error {
 	macCompared, err := hex.DecodeString(encrypted)
 	if err != nil {
