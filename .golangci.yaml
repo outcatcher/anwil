@@ -33,6 +33,30 @@ linters-settings:
       rules:
         json: snake
         yaml: camel
+  revive:
+    rules:
+      - name: deep-exit
+      - name: defer
+      - name: dot-imports
+      - name: early-return
+      - name: exported
+        arguments: [ "checkPrivateReceivers" ]
+      - name: unreachable-code
+      - name: unused-receiver
+      # default rules:
+      - name: var-declaration
+      - name: dot-imports
+      - name: blank-imports
+      - name: var-naming
+      - name: indent-error-flow
+      - name: range
+      - name: errorf
+      - name: receiver-naming
+      - name: increment-decrement
+      - name: error-return
+      - name: time-naming
+      - name: context-keys-type
+      - name: context-as-argument
 
 issues:
   exclude-use-default: false

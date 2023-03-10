@@ -15,6 +15,7 @@ type auth struct {
 	privateKey ed25519.PrivateKey
 }
 
+// UseConfig attaches configuration to the service.
 func (a *auth) UseConfig(configuration *configDTO.Configuration) {
 	a.cfg = configuration
 }

@@ -44,17 +44,17 @@ func (m *MockDBExecutor) NamedExecContext(context.Context, string, interface{}) 
 }
 
 // DriverName returns "mock".
-func (m *MockDBExecutor) DriverName() string {
+func (*MockDBExecutor) DriverName() string {
 	return "mock"
 }
 
 // Rebind calls to sqlx.Rebind with UNKNOWN bindType.
-func (m *MockDBExecutor) Rebind(s string) string {
+func (*MockDBExecutor) Rebind(s string) string {
 	return sqlx.Rebind(sqlx.UNKNOWN, s)
 }
 
 // BindNamed calls to sqx.Named.
-func (m *MockDBExecutor) BindNamed(s string, i interface{}) (string, []interface{}, error) {
+func (*MockDBExecutor) BindNamed(s string, i interface{}) (string, []interface{}, error) {
 	return sqlx.Named(s, i) //nolint:wrapcheck
 }
 

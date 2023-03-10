@@ -25,11 +25,13 @@ var (
 
 // WithConfig can return configuration.
 type WithConfig interface {
+	// Config returns used configuration.
 	Config() *Configuration
 }
 
 // RequiresConfig can use configuration.
 type RequiresConfig interface {
+	// UseConfig attaches configuration to the service.
 	UseConfig(*Configuration)
 }
 

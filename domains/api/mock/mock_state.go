@@ -4,20 +4,15 @@ Package mock contains mock implementation of state.
 package mock
 
 import (
-	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"io"
 	"math/big"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/auth"
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
@@ -28,11 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	mockTMPDir = filepath.Join(os.TempDir(), "anwil_mock")
-
-	errNotImplemented = errors.New("mock missing method implementation")
-)
+var mockTMPDir = filepath.Join(os.TempDir(), "anwil_mock")
 
 type mockState struct {
 	cfg *configDTO.Configuration
@@ -45,28 +36,24 @@ type mockState struct {
 	users usersDTO.Service
 }
 
+// Config returns API configuration.
 func (m *mockState) Config() *configDTO.Configuration {
 	return m.cfg
 }
 
+// Authentication returns auth service instance.
 func (m *mockState) Authentication() authDTO.Service {
 	return m.auth
 }
 
+// Users returns users service instance.
 func (m *mockState) Users() usersDTO.Service {
 	return m.users
 }
 
+// Storage returns storage.
 func (m *mockState) Storage() storageDTO.QueryExecutor {
 	return m.storage
-}
-
-func (m *mockState) Serve(context.Context) (*http.Server, error) {
-	return nil, fmt.Errorf("(Server): %w", errNotImplemented)
-}
-
-func (m *mockState) NewRouter(context.Context, ...gin.HandlerFunc) (*gin.Engine, error) {
-	return nil, fmt.Errorf("(NewRouter): %w", errNotImplemented)
 }
 
 func getRandomPort(t *testing.T) int {
@@ -113,7 +100,7 @@ func (m *mockState) initServices() {
 }
 
 // NewAPIMock generates new API state for testing purposes.
-func NewAPIMock(t *testing.T) *mockState { //nolint:revive
+func NewAPIMock(t *testing.T) *mockState {
 	t.Helper()
 
 	err := os.MkdirAll(mockTMPDir, os.ModePerm)
