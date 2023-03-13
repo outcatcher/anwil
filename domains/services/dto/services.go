@@ -3,12 +3,15 @@ Package dto contains DTOs describing services and
 */
 package dto
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+)
 
 // Service - base interface for service to adhere.
 type Service interface {
 	// Init initialized service instance with given state.
-	Init(state interface{}) error
+	Init(ctx context.Context, state interface{}) error
 }
 
 type initializer func(service, state interface{}) error

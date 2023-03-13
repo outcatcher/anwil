@@ -3,10 +3,10 @@ package middlewares
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/outcatcher/anwil/domains/logging"
 	services "github.com/outcatcher/anwil/domains/services/dto"
 )
 
@@ -44,5 +44,7 @@ func ConvertErrors(c *gin.Context) {
 
 	c.AbortWithStatus(statusCode)
 
-	log.Printf("error response code %d (%s) with reason: %s", statusCode, http.StatusText(statusCode), err)
+	logger := logging.LoggerFromCtx(c.Request.Context())
+
+	logger.Printf("error response code %d (%s) with reason: %s", statusCode, http.StatusText(statusCode), err)
 }

@@ -6,12 +6,12 @@ package config
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/outcatcher/anwil/domains/config/dto"
 	"github.com/outcatcher/anwil/domains/config/envyaml"
+	"github.com/outcatcher/anwil/domains/logging"
 )
 
 // LoadServerConfiguration loads server yaml configuration by given path.
@@ -30,7 +30,9 @@ func LoadServerConfiguration(ctx context.Context, path string) (*dto.Configurati
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			log.Printf("error closing config file: %v", err)
+			logger := logging.LoggerFromCtx(ctx)
+
+			logger.Printf("error closing config file: %v", err)
 		}
 	}()
 

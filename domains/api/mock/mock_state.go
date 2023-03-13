@@ -4,10 +4,12 @@ Package mock contains mock implementation of state.
 package mock
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
 	"io"
+	"log"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -32,6 +34,8 @@ type mockState struct {
 
 	storage *storage.MockDBExecutor
 
+	logger *log.Logger
+
 	auth  authDTO.Service
 	users usersDTO.Service
 }
@@ -54,6 +58,11 @@ func (m *mockState) Users() usersDTO.Service {
 // Storage returns storage.
 func (m *mockState) Storage() storageDTO.QueryExecutor {
 	return m.storage
+}
+
+// Logger returns logger instance.
+func (m *mockState) Logger() *log.Logger {
+	return m.logger
 }
 
 func getRandomPort(t *testing.T) int {
@@ -91,12 +100,12 @@ func generatePrivateKeyFile(t *testing.T) string {
 }
 
 // initServices is simplified services initialization.
-func (m *mockState) initServices() {
+func (m *mockState) initServices(ctx context.Context) {
 	m.auth = auth.New()
 	m.users = users.New()
 
-	require.NoError(m.t, m.auth.Init(m))
-	require.NoError(m.t, m.users.Init(m))
+	require.NoError(m.t, m.auth.Init(ctx, m))
+	require.NoError(m.t, m.users.Init(ctx, m))
 }
 
 // NewAPIMock generates new API state for testing purposes.
@@ -124,9 +133,9 @@ func NewAPIMock(t *testing.T) *mockState {
 		Debug:          true,
 	}
 
-	state := &mockState{cfg: cfg, t: t}
+	state := &mockState{cfg: cfg, t: t, logger: log.Default()}
 
-	state.initServices()
+	state.initServices(context.Background())
 
 	return state
 }

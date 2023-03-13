@@ -15,6 +15,7 @@ import (
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	"github.com/outcatcher/anwil/domains/config"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
+	"github.com/outcatcher/anwil/domains/logging"
 	"github.com/outcatcher/anwil/domains/storage"
 	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
@@ -26,6 +27,7 @@ const defaultTimeout = time.Minute
 type State struct {
 	cfg *configDTO.Configuration
 
+	log     *log.Logger
 	storage storageDTO.QueryExecutor
 
 	serviceMapping     map[serviceID]interface{}
@@ -55,7 +57,7 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 		loggedAddr = fmt.Sprintf("localhost:%d", cfg.API.Port)
 	}
 
-	log.Printf("Anwil API server started at http://%s", loggedAddr)
+	s.log.Printf("Anwil API server started at http://%s", loggedAddr)
 
 	return server, nil
 }
@@ -70,6 +72,15 @@ func (s *State) NewRouter(middles ...gin.HandlerFunc) (*gin.Engine, error) {
 	}
 
 	return engine, nil
+}
+
+// Logger returns configured logger or a default one.
+func (s *State) Logger() *log.Logger {
+	if s.log == nil {
+		s.log = log.Default()
+	}
+
+	return s.log
 }
 
 // Config returns server configuration.
@@ -100,23 +111,23 @@ func (s *State) Storage() storageDTO.QueryExecutor {
 
 // Init initializes API and returns new API instance.
 func Init(ctx context.Context, configPath string) (*State, error) {
-	apiState := new(State)
-
 	cfg, err := config.LoadServerConfiguration(ctx, path.Clean(configPath))
 	if err != nil {
 		return nil, fmt.Errorf("error loading server config: %w", err)
 	}
-
-	apiState.cfg = cfg
 
 	db, err := storage.Connect(cfg.DB)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to the storage: %w", err)
 	}
 
-	apiState.storage = db
+	apiState := &State{
+		cfg:     cfg,
+		log:     logging.LoggerFromCtx(ctx),
+		storage: db,
+	}
 
-	if err := apiState.initServices(); err != nil {
+	if err := apiState.initServices(ctx); err != nil {
 		return nil, fmt.Errorf("error initializing API: %w", err)
 	}
 

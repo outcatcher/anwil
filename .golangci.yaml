@@ -64,6 +64,7 @@ issues:
     - path: .+_test\.go
       linters:
         - bodyclose  # we use close it in a helper method
+        - noctx
     - linters:
         - godox
       text: "TODO"
