@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/syslog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,27 +18,37 @@ import (
 	"time"
 
 	"github.com/outcatcher/anwil/domains/api"
+	"github.com/outcatcher/anwil/domains/logging"
 )
 
 const defaultTimeout = time.Minute
 
 func main() {
+	sysWriter, err := syslog.New(syslog.LOG_INFO, "anwil-api")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	sysLogger := log.New(sysWriter, "", log.LstdFlags)
+
 	argConfigPath := flag.String("config", "", "Configuration path")
 	flag.Parse()
 
 	if *argConfigPath == "" {
-		log.Fatalf("please provide configuation path")
+		sysLogger.Fatalf("please provide configuation path")
 	}
 
 	configPath, err := filepath.Abs(filepath.Clean(*argConfigPath))
 	if err != nil {
-		log.Fatal(err)
+		sysLogger.Fatal(err)
 	}
 
-	log.Printf("using configuration at %s", configPath)
+	sysLogger.Printf("using configuration at %s", configPath)
 
-	if err := exec(context.Background(), configPath); err != nil {
-		log.Fatal(err)
+	ctx := logging.CtxWithLogger(context.Background(), sysLogger)
+
+	if err := exec(ctx, configPath); err != nil {
+		sysLogger.Fatal(err)
 	}
 }
 
@@ -61,11 +72,13 @@ func exec(ctx context.Context, configPath string) error {
 	go func() {
 		sig := <-sigChan
 
-		log.Printf("received signal: %+v", sig)
+		logger := logging.LoggerFromCtx(ctx)
+
+		logger.Printf("received signal: %+v", sig)
 
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			log.Printf("server shutdown faced error: %s", err)
+			logger.Printf("server shutdown faced error: %s", err)
 		}
 	}()
 

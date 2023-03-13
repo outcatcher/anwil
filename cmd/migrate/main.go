@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"log/syslog"
 	"path/filepath"
 
 	"github.com/outcatcher/anwil/domains/config"
@@ -14,6 +15,13 @@ import (
 )
 
 func main() {
+	sysLogger, err := syslog.New(syslog.LOG_INFO, "anwil-migrate")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	log.SetOutput(sysLogger)
+
 	argConfigPath := flag.String("config", "", "Configuration path")
 	flag.Parse()
 

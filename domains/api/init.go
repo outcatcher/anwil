@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"fmt"
 )
 
 var errAlreadyInitialized = errors.New("API already initialized")
 
-func (s *State) initServices() error {
+func (s *State) initServices(ctx context.Context) error {
 	if s.serviceMapping != nil {
 		return fmt.Errorf("error initializing services: %w", errAlreadyInitialized)
 	}
@@ -15,7 +16,7 @@ func (s *State) initServices() error {
 	s.serviceMapping = make(map[serviceID]any)
 
 	for id, svc := range preparedServices {
-		if err := svc.Init(s); err != nil {
+		if err := svc.Init(ctx, s); err != nil {
 			return fmt.Errorf("error initializing service %s: %w", id, err)
 		}
 

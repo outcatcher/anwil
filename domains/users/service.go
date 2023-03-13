@@ -1,7 +1,9 @@
 package users
 
 import (
+	"context"
 	"fmt"
+	"log"
 
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	services "github.com/outcatcher/anwil/domains/services/dto"
@@ -12,6 +14,8 @@ import (
 
 type users struct {
 	storage *userStorage.UserStorage
+
+	log *log.Logger
 
 	auth authDTO.Service
 }
@@ -26,8 +30,13 @@ func (u *users) UseStorage(db storageDTO.QueryExecutor) {
 	u.storage = userStorage.New(db)
 }
 
+// UseLogger attaches logger to the service.
+func (u *users) UseLogger(logger *log.Logger) {
+	u.log = logger
+}
+
 // Init initialized user instance with given state.
-func (u *users) Init(state interface{}) error {
+func (u *users) Init(_ context.Context, state interface{}) error {
 	err := services.InitializeWith(
 		u, state,
 		storageDTO.InitWithStorage,

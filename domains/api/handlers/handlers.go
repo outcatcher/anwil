@@ -13,6 +13,7 @@ import (
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	authHandlers "github.com/outcatcher/anwil/domains/auth/handlers"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
+	logDTO "github.com/outcatcher/anwil/domains/logging/dto"
 	services "github.com/outcatcher/anwil/domains/services/dto"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
@@ -24,6 +25,7 @@ func handleStatic(engine *gin.Engine, basePath string) {
 }
 
 type handlersState interface {
+	logDTO.WithLogger
 	usersDTO.WithUsers
 	authDTO.WithAuth
 	configDTO.WithConfig
