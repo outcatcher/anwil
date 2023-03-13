@@ -39,7 +39,7 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
 	// context is passed as BaseContext
-	router, err := s.NewRouter(gin.Logger(), gin.Recovery()) //nolint:contextcheck
+	router, err := s.NewRouter(gin.LoggerWithWriter(s.log.Writer()), gin.Recovery()) //nolint:contextcheck
 	if err != nil {
 		return nil, fmt.Errorf("error creating new router: %w", err)
 	}
