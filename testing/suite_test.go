@@ -8,9 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -24,6 +26,7 @@ import (
 	"github.com/outcatcher/anwil/domains/api"
 	"github.com/outcatcher/anwil/domains/config"
 	storageDTO "github.com/outcatcher/anwil/domains/config/dto"
+	"github.com/outcatcher/anwil/domains/logging"
 	"github.com/outcatcher/anwil/domains/storage"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 	"github.com/stretchr/testify/require"
@@ -44,6 +47,7 @@ const (
 type AnwilSuite struct {
 	suite.Suite
 
+	log        *log.Logger
 	apiHandler http.HandlerFunc
 }
 
@@ -103,7 +107,15 @@ func (s *AnwilSuite) request(
 
 func (s *AnwilSuite) SetupSuite() {
 	t := s.T()
+
 	ctx := context.Background()
+
+	if os.Getenv("LOG_REQUESTS") != "" {
+		ctx = logging.CtxWithLogger(ctx, log.Default())
+	} else {
+		// don't log http requests on server side
+		ctx = logging.CtxWithLogger(ctx, log.New(io.Discard, "", log.LstdFlags))
+	}
 
 	gin.SetMode(gin.ReleaseMode) // no need for request logs
 
@@ -121,13 +133,11 @@ func (s *AnwilSuite) SetupSuite() {
 
 	createDebugUser(t, ctx, apiState)
 
-	router, err := apiState.NewRouter()
+	srv, err := apiState.Server(ctx)
 	require.NoError(t, err)
 
 	// gin engine as a handler function
-	s.apiHandler = func(w http.ResponseWriter, r *http.Request) {
-		router.ServeHTTP(w, r)
-	}
+	s.apiHandler = srv.Handler.ServeHTTP
 }
 
 func mapToSlice(src map[string]string) []string {

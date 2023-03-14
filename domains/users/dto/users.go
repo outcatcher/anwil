@@ -6,8 +6,11 @@ package dto
 import (
 	"context"
 
-	services "github.com/outcatcher/anwil/domains/services/dto"
+	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 )
+
+// ServiceUsers - ID for user service.
+const ServiceUsers svcDTO.ServiceID = "users"
 
 // User holds user data.
 type User struct {
@@ -18,7 +21,7 @@ type User struct {
 
 // Service is definition of user service.
 type Service interface {
-	services.Service
+	svcDTO.Service
 
 	GetUser(ctx context.Context, username string) (*User, error)
 	SaveUser(ctx context.Context, user User) error

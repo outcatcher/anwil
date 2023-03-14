@@ -9,7 +9,7 @@ import (
 	"github.com/outcatcher/anwil/domains/auth/dto"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
 	logDTO "github.com/outcatcher/anwil/domains/logging/dto"
-	services "github.com/outcatcher/anwil/domains/services/dto"
+	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 )
 
 type auth struct {
@@ -18,6 +18,11 @@ type auth struct {
 	log *log.Logger
 
 	privateKey ed25519.PrivateKey
+}
+
+// ID of the auth service.
+func (*auth) ID() svcDTO.ServiceID {
+	return dto.ServiceAuth
 }
 
 // UseConfig attaches configuration to the service.
@@ -30,9 +35,14 @@ func (a *auth) UseLogger(logger *log.Logger) {
 	a.log = logger
 }
 
+// DependsOn defines services auth service depends on.
+func (*auth) DependsOn() []svcDTO.ServiceID {
+	return []svcDTO.ServiceID{}
+}
+
 // Init initializes new auth service.
 func (a *auth) Init(ctx context.Context, state interface{}) error {
-	err := services.InitializeWith(
+	err := svcDTO.InitializeWith(
 		a, state,
 		configDTO.InitWithConfig,
 		logDTO.InitWithLogger,

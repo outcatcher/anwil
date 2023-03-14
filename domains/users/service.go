@@ -6,7 +6,7 @@ import (
 	"log"
 
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
-	services "github.com/outcatcher/anwil/domains/services/dto"
+	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
 	"github.com/outcatcher/anwil/domains/users/dto"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
@@ -35,9 +35,19 @@ func (u *users) UseLogger(logger *log.Logger) {
 	u.log = logger
 }
 
+// DependsOn defines services Users service depends on.
+func (*users) DependsOn() []svcDTO.ServiceID {
+	return []svcDTO.ServiceID{authDTO.ServiceAuth}
+}
+
+// ID returns  users service ID.
+func (*users) ID() svcDTO.ServiceID {
+	return dto.ServiceUsers
+}
+
 // Init initialized user instance with given state.
 func (u *users) Init(_ context.Context, state interface{}) error {
-	err := services.InitializeWith(
+	err := svcDTO.InitializeWith(
 		u, state,
 		storageDTO.InitWithStorage,
 		authDTO.InitWithAuth,

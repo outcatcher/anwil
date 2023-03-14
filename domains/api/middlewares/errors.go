@@ -28,6 +28,8 @@ func statusCodeFromError(err error) int {
 
 // ConvertErrors converts response error to valid status code.
 func ConvertErrors(c *gin.Context) {
+	log := logging.LoggerFromCtx(c.Request.Context())
+
 	// no processing of request
 	c.Next()
 
@@ -44,7 +46,5 @@ func ConvertErrors(c *gin.Context) {
 
 	c.AbortWithStatus(statusCode)
 
-	logger := logging.LoggerFromCtx(c.Request.Context())
-
-	logger.Printf("error response code %d (%s) with reason: %s", statusCode, http.StatusText(statusCode), err)
+	log.Printf("error response code %d (%s) with reason: %s", statusCode, http.StatusText(statusCode), err)
 }
