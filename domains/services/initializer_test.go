@@ -46,8 +46,9 @@ func svcMapping(services ...svcDTO.Service) svcDTO.ServiceMapping {
 	return mapping
 }
 
-func TestInitialize(t *testing.T) {
+func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test function
 	t.Parallel()
+
 	var emptyState any // not using state anyway
 
 	t.Run("normal", func(t *testing.T) {
@@ -111,7 +112,7 @@ func TestInitialize(t *testing.T) {
 	t.Run("init error", func(t *testing.T) {
 		t.Parallel()
 
-		errInitFail := errors.New("error initializing testService")
+		errInitFail := errors.New("error initializing testService") //nolint:goerr113 // this is intentional
 
 		svc1 := &testService{expectedInitError: errInitFail}
 
