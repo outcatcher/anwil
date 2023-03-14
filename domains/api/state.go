@@ -7,17 +7,20 @@ import (
 	"net"
 	"net/http"
 	"path"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/handlers"
+	"github.com/outcatcher/anwil/domains/auth"
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	"github.com/outcatcher/anwil/domains/config"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
 	"github.com/outcatcher/anwil/domains/logging"
+	"github.com/outcatcher/anwil/domains/services"
+	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 	"github.com/outcatcher/anwil/domains/storage"
 	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
+	"github.com/outcatcher/anwil/domains/users"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 )
 
@@ -30,23 +33,24 @@ type State struct {
 	log     *log.Logger
 	storage storageDTO.QueryExecutor
 
-	serviceMapping     map[serviceID]interface{}
-	serviceMappingLock sync.Mutex
+	services svcDTO.ServiceMapping
 }
 
 // Server creates new API server instance.
 func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
-	// context is passed as BaseContext
-	router, err := s.NewRouter(gin.LoggerWithWriter(s.log.Writer()), gin.Recovery()) //nolint:contextcheck
-	if err != nil {
-		return nil, fmt.Errorf("error creating new router: %w", err)
+	engine := gin.New()
+	engine.Use(gin.LoggerWithWriter(s.Logger().Writer()), gin.Recovery())
+
+	// запросы не должны использовать родительский контекст
+	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck
+		return nil, fmt.Errorf("error populating endpoints: %w", err)
 	}
 
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port),
-		Handler:           router,
+		Handler:           engine,
 		ReadHeaderTimeout: defaultTimeout,
 		BaseContext:       func(_ net.Listener) context.Context { return ctx },
 	}
@@ -57,21 +61,20 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 		loggedAddr = fmt.Sprintf("localhost:%d", cfg.API.Port)
 	}
 
-	s.log.Printf("Anwil API server started at http://%s", loggedAddr)
+	s.Logger().Printf("Anwil API server started at http://%s", loggedAddr)
 
 	return server, nil
 }
 
-// NewRouter creates new GIN engine for Anwil API.
-func (s *State) NewRouter(middles ...gin.HandlerFunc) (*gin.Engine, error) {
-	engine := gin.New()
-	engine.Use(middles...)
-
-	if err := handlers.PopulateEndpoints(engine, s); err != nil {
-		return nil, fmt.Errorf("error populating endpoints: %w", err)
+// WithServices uses selected service mapping.
+func (s *State) WithServices(services ...svcDTO.Service) {
+	if s.services == nil {
+		s.services = make(svcDTO.ServiceMapping)
 	}
 
-	return engine, nil
+	for _, svc := range services {
+		s.services[svc.ID()] = svc
+	}
 }
 
 // Logger returns configured logger or a default one.
@@ -90,18 +93,12 @@ func (s *State) Config() *configDTO.Configuration {
 
 // Authentication service.
 func (s *State) Authentication() authDTO.Service {
-	s.serviceMappingLock.Lock()
-	defer s.serviceMappingLock.Unlock()
-
-	return s.serviceMapping[serviceAuth].(authDTO.Service) //nolint:forcetypeassert
+	return s.services[authDTO.ServiceAuth].(authDTO.Service) //nolint:forcetypeassert
 }
 
 // Users service.
 func (s *State) Users() usersDTO.Service {
-	s.serviceMappingLock.Lock()
-	defer s.serviceMappingLock.Unlock()
-
-	return s.serviceMapping[serviceUsers].(usersDTO.Service) //nolint:forcetypeassert
+	return s.services[usersDTO.ServiceUsers].(usersDTO.Service) //nolint:forcetypeassert
 }
 
 // Storage returns shared query executor (i.e. *sqlx.DB).
@@ -127,9 +124,14 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 		storage: db,
 	}
 
-	if err := apiState.initServices(ctx); err != nil {
+	apiState.WithServices(auth.New(), users.New())
+
+	initialized, err := services.Initialize(ctx, apiState, apiState.services)
+	if err != nil {
 		return nil, fmt.Errorf("error initializing API: %w", err)
 	}
+
+	apiState.services = initialized
 
 	return apiState, nil
 }

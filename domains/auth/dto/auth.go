@@ -7,6 +7,9 @@ import (
 	services "github.com/outcatcher/anwil/domains/services/dto"
 )
 
+// ServiceAuth - ID for auth service.
+const ServiceAuth = "auth"
+
 var (
 	errStateWithoutAuth   = errors.New("given state has no auth")
 	errServiceWithoutAuth = errors.New("given service does not support auth")

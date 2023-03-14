@@ -88,9 +88,6 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 func TestRequireJSONOk(t *testing.T) {
 	t.Parallel()
 
-	recorder := closingRecorder(t)
-	ginCtx, _ := gin.CreateTestContext(recorder)
-
 	cases := []string{http.MethodPut, http.MethodPost}
 
 	for _, method := range cases {
@@ -98,6 +95,9 @@ func TestRequireJSONOk(t *testing.T) {
 
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
+
+			recorder := closingRecorder(t)
+			ginCtx, _ := gin.CreateTestContext(recorder)
 
 			header := make(http.Header)
 			header.Set("content-type", gin.MIMEJSON)
