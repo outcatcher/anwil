@@ -37,8 +37,8 @@ type RequiresConfig interface {
 	UseConfig(*Configuration)
 }
 
-// InitWithConfig initializes given service with authentication.
-func InitWithConfig(service interface{}, state interface{}) error {
+// ConfigInject injects configuration into service.
+func ConfigInject(service interface{}, state interface{}) error {
 	reqConfig, ok := service.(RequiresConfig)
 	if !ok {
 		return fmt.Errorf("error intializing service config: %w", errServiceWithoutConfig)

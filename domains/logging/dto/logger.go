@@ -24,8 +24,8 @@ type RequiresLogger interface {
 	UseLogger(logger *log.Logger)
 }
 
-// InitWithLogger attaches logger to given service.
-func InitWithLogger(service interface{}, state interface{}) error {
+// LoggerInject injects logger into service.
+func LoggerInject(service interface{}, state interface{}) error {
 	reqConfig, ok := service.(RequiresLogger)
 	if !ok {
 		return fmt.Errorf("error intializing logging: %w", errServiceWithoutLogger)
