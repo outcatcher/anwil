@@ -26,8 +26,8 @@ type requiresAuth interface {
 	UseAuthentication(auth Service)
 }
 
-// InitWithAuth initializes given service with authentication.
-func InitWithAuth(service interface{}, state interface{}) error {
+// AuthInject injects authentication into given service.
+func AuthInject(service interface{}, state interface{}) error {
 	reqAuth, ok := service.(requiresAuth)
 	if !ok {
 		return fmt.Errorf("error intializing service auth: %w", errStateWithoutAuth)

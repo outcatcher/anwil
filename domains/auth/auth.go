@@ -9,6 +9,7 @@ import (
 	"github.com/outcatcher/anwil/domains/auth/dto"
 	configDTO "github.com/outcatcher/anwil/domains/config/dto"
 	logDTO "github.com/outcatcher/anwil/domains/logging/dto"
+	"github.com/outcatcher/anwil/domains/services"
 	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 )
 
@@ -42,10 +43,10 @@ func (*auth) DependsOn() []svcDTO.ServiceID {
 
 // Init initializes new auth service.
 func (a *auth) Init(ctx context.Context, state interface{}) error {
-	err := svcDTO.InitializeWith(
+	err := services.InjectServiceWith(
 		a, state,
-		configDTO.InitWithConfig,
-		logDTO.InitWithLogger,
+		configDTO.ConfigInject,
+		logDTO.LoggerInject,
 	)
 	if err != nil {
 		return fmt.Errorf("error initializing auth service: %w", err)

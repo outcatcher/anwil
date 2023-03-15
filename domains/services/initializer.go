@@ -46,16 +46,15 @@ func (init *initializer) initWithDependencies(
 		return fmt.Errorf("service %s: %w", id, errCyclicServiceDependency)
 	}
 
+	if svcState == serviceReady {
+		return nil // already initialized
+	}
+
 	init.serviceStates[id] = serviceInProgress
 
 	dependencies := svc.DependsOn()
 
 	for _, depID := range dependencies {
-		svcState := init.serviceStates[depID]
-		if svcState == serviceReady { // already initialized
-			continue
-		}
-
 		if err := init.initWithDependencies(ctx, depID); err != nil {
 			return err
 		}
@@ -89,4 +88,28 @@ func Initialize(ctx context.Context, state interface{}, svcMapping dto.ServiceMa
 	}
 
 	return initer.services, nil
+}
+
+// InjectFunc - function injecting something into service.
+type InjectFunc func(service, state interface{}) error
+
+// InjectServiceWith - initialize service with given service inject functions.
+//
+// Inject functions expected to add some other service reference into given service.
+//
+// Example:
+//
+//	err := services.InjectServiceWith(
+//		authService, state,
+//		configDTO.ConfigInject,
+//		logDTO.LoggerInject,
+//	)
+func InjectServiceWith(service dto.Service, state interface{}, injects ...InjectFunc) error {
+	for _, initFunc := range injects {
+		if err := initFunc(service, state); err != nil {
+			return fmt.Errorf("error intializing service: %w", err)
+		}
+	}
+
+	return nil
 }

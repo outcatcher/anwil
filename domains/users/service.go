@@ -6,6 +6,7 @@ import (
 	"log"
 
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
+	"github.com/outcatcher/anwil/domains/services"
 	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
 	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
 	"github.com/outcatcher/anwil/domains/users/dto"
@@ -47,10 +48,10 @@ func (*users) ID() svcDTO.ServiceID {
 
 // Init initialized user instance with given state.
 func (u *users) Init(_ context.Context, state interface{}) error {
-	err := svcDTO.InitializeWith(
+	err := services.InjectServiceWith(
 		u, state,
-		storageDTO.InitWithStorage,
-		authDTO.InitWithAuth,
+		storageDTO.StorageInject,
+		authDTO.AuthInject,
 	)
 	if err != nil {
 		return fmt.Errorf("erorr initializing user service: %w", err)

@@ -27,8 +27,8 @@ type RequiresStorage interface {
 	UseStorage(executor QueryExecutor)
 }
 
-// InitWithStorage adds storage to the service.
-func InitWithStorage(serv, state interface{}) error {
+// StorageInject adds storage to the service.
+func StorageInject(serv, state interface{}) error {
 	reqStorage, ok := serv.(RequiresStorage)
 	if !ok {
 		return fmt.Errorf("error intializing service storage: %w", errServiceWithoutStorage)
