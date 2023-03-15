@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/auth/dto"
-	"github.com/outcatcher/anwil/domains/logging"
+	"github.com/outcatcher/anwil/domains/auth/service/schema"
+	"github.com/outcatcher/anwil/domains/internals/logging"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 // JWTAuth check JWT and loads user info into Gin context.
-func JWTAuth(state dto.WithAuth) gin.HandlerFunc {
+func JWTAuth(state schema.WithAuth) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader(authHeader)
 

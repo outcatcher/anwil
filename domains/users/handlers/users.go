@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	users "github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/schema"
 )
 
 type reqUserCreate struct {
@@ -13,7 +14,7 @@ type reqUserCreate struct {
 	FullName string `json:"full_name"`
 }
 
-func handleUserRegister(usr users.Service) gin.HandlerFunc {
+func handleUserRegister(usr schema.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 		req := new(reqUserCreate)

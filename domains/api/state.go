@@ -11,29 +11,29 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/handlers"
-	"github.com/outcatcher/anwil/domains/auth"
-	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
-	"github.com/outcatcher/anwil/domains/config"
-	configDTO "github.com/outcatcher/anwil/domains/config/dto"
-	"github.com/outcatcher/anwil/domains/logging"
-	"github.com/outcatcher/anwil/domains/services"
-	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
-	"github.com/outcatcher/anwil/domains/storage"
-	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
+	auth "github.com/outcatcher/anwil/domains/auth/service"
+	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
+	"github.com/outcatcher/anwil/domains/internals/config"
+	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
+	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/outcatcher/anwil/domains/internals/services"
+	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/internals/storage"
+	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
 	"github.com/outcatcher/anwil/domains/users"
-	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/schema"
 )
 
 const defaultTimeout = time.Minute
 
 // State holds general application state.
 type State struct {
-	cfg *configDTO.Configuration
+	cfg *configSchema.Configuration
 
 	log     *log.Logger
 	storage storageDTO.QueryExecutor
 
-	services svcDTO.ServiceMapping
+	services svcSchema.ServiceMapping
 }
 
 // Server creates new API server instance.
@@ -67,9 +67,9 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 }
 
 // WithServices uses selected service mapping.
-func (s *State) WithServices(services ...svcDTO.Service) {
+func (s *State) WithServices(services ...svcSchema.Service) {
 	if s.services == nil {
-		s.services = make(svcDTO.ServiceMapping)
+		s.services = make(svcSchema.ServiceMapping)
 	}
 
 	for _, svc := range services {
@@ -87,7 +87,7 @@ func (s *State) Logger() *log.Logger {
 }
 
 // Config returns server configuration.
-func (s *State) Config() *configDTO.Configuration {
+func (s *State) Config() *configSchema.Configuration {
 	return s.cfg
 }
 
@@ -97,8 +97,8 @@ func (s *State) Authentication() authDTO.Service {
 }
 
 // Users service.
-func (s *State) Users() usersDTO.Service {
-	return s.services[usersDTO.ServiceUsers].(usersDTO.Service) //nolint:forcetypeassert
+func (s *State) Users() schema.Service {
+	return s.services[schema.ServiceUsers].(schema.Service) //nolint:forcetypeassert
 }
 
 // Storage returns shared query executor (i.e. *sqlx.DB).

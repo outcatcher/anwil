@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/outcatcher/anwil/domains/api"
-	"github.com/outcatcher/anwil/domains/logging"
+	"github.com/outcatcher/anwil/domains/internals/logging"
 )
 
 const defaultTimeout = time.Minute
