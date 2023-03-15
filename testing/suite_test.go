@@ -29,7 +29,7 @@ import (
 	"github.com/outcatcher/anwil/domains/internals/logging"
 	"github.com/outcatcher/anwil/domains/internals/storage"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
-	usersSchema "github.com/outcatcher/anwil/domains/users/schema"
+	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

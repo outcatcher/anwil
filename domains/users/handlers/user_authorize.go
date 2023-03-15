@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	users "github.com/outcatcher/anwil/domains/users/dto"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 type credentialsRequest struct {

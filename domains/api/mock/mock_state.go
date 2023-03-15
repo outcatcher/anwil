@@ -20,8 +20,8 @@ import (
 	configDTO "github.com/outcatcher/anwil/domains/internals/config/schema"
 	"github.com/outcatcher/anwil/domains/internals/storage"
 	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
-	"github.com/outcatcher/anwil/domains/users"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	users "github.com/outcatcher/anwil/domains/users/service"
+	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ type mockState struct {
 	logger *log.Logger
 
 	auth  authDTO.Service
-	users schema.Service
+	users usersSchema.Service
 }
 
 // Config returns API configuration.
@@ -51,7 +51,7 @@ func (m *mockState) Authentication() authDTO.Service {
 }
 
 // Users returns users service instance.
-func (m *mockState) Users() schema.Service {
+func (m *mockState) Users() usersSchema.Service {
 	return m.users
 }
 
