@@ -10,8 +10,8 @@ import (
 	"log/syslog"
 	"path/filepath"
 
-	"github.com/outcatcher/anwil/domains/config"
-	"github.com/outcatcher/anwil/domains/storage"
+	"github.com/outcatcher/anwil/domains/internals/config"
+	"github.com/outcatcher/anwil/domains/internals/storage"
 )
 
 func main() {

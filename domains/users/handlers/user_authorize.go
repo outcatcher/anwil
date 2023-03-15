@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	users "github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/schema"
 )
 
 type credentialsRequest struct {
@@ -19,7 +20,7 @@ type jwtResponse struct {
 	Token string `json:"token"`
 }
 
-func handleAuthorize(usr users.Service) gin.HandlerFunc {
+func handleAuthorize(usr schema.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := new(credentialsRequest)
 

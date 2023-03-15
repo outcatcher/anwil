@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
-	services "github.com/outcatcher/anwil/domains/services/dto"
+	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 	"github.com/outcatcher/anwil/domains/users/dto"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )

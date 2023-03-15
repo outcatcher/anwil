@@ -15,13 +15,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/outcatcher/anwil/domains/auth"
-	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
-	configDTO "github.com/outcatcher/anwil/domains/config/dto"
-	"github.com/outcatcher/anwil/domains/storage"
-	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
+	auth "github.com/outcatcher/anwil/domains/auth/service"
+	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
+	configDTO "github.com/outcatcher/anwil/domains/internals/config/schema"
+	"github.com/outcatcher/anwil/domains/internals/storage"
+	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
 	"github.com/outcatcher/anwil/domains/users"
-	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/schema"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ type mockState struct {
 	logger *log.Logger
 
 	auth  authDTO.Service
-	users usersDTO.Service
+	users schema.Service
 }
 
 // Config returns API configuration.
@@ -51,7 +51,7 @@ func (m *mockState) Authentication() authDTO.Service {
 }
 
 // Users returns users service instance.
-func (m *mockState) Users() usersDTO.Service {
+func (m *mockState) Users() schema.Service {
 	return m.users
 }
 

@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/logging"
-	services "github.com/outcatcher/anwil/domains/services/dto"
+	"github.com/outcatcher/anwil/domains/internals/logging"
+	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
+	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
 )
 
 // UserStorage - storage of users.

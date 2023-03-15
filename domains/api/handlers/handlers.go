@@ -10,13 +10,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
-	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
 	authHandlers "github.com/outcatcher/anwil/domains/auth/handlers"
-	configDTO "github.com/outcatcher/anwil/domains/config/dto"
-	logDTO "github.com/outcatcher/anwil/domains/logging/dto"
-	services "github.com/outcatcher/anwil/domains/services/dto"
-	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
+	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
+	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
+	logDTO "github.com/outcatcher/anwil/domains/internals/logging/schema"
+	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
+	"github.com/outcatcher/anwil/domains/users/schema"
 )
 
 func handleStatic(engine *gin.Engine, basePath string) {
@@ -26,9 +26,9 @@ func handleStatic(engine *gin.Engine, basePath string) {
 
 type handlersState interface {
 	logDTO.WithLogger
-	usersDTO.WithUsers
+	schema.WithUsers
 	authDTO.WithAuth
-	configDTO.WithConfig
+	configSchema.WithConfig
 }
 
 type handlers struct {

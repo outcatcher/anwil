@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
-	"github.com/outcatcher/anwil/domains/services"
-	svcDTO "github.com/outcatcher/anwil/domains/services/dto"
-	storageDTO "github.com/outcatcher/anwil/domains/storage/dto"
-	"github.com/outcatcher/anwil/domains/users/dto"
+	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
+	"github.com/outcatcher/anwil/domains/internals/services"
+	svcDTO "github.com/outcatcher/anwil/domains/internals/services/schema"
+	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
+	"github.com/outcatcher/anwil/domains/users/schema"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
 
@@ -43,7 +43,7 @@ func (*users) DependsOn() []svcDTO.ServiceID {
 
 // ID returns  users service ID.
 func (*users) ID() svcDTO.ServiceID {
-	return dto.ServiceUsers
+	return schema.ServiceUsers
 }
 
 // Init initialized user instance with given state.
@@ -61,6 +61,6 @@ func (u *users) Init(_ context.Context, state interface{}) error {
 }
 
 // New returns not initialized instance of users service.
-func New() dto.Service {
+func New() schema.Service {
 	return new(users)
 }

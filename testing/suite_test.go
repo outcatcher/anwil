@@ -24,11 +24,12 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api"
-	"github.com/outcatcher/anwil/domains/config"
-	storageDTO "github.com/outcatcher/anwil/domains/config/dto"
-	"github.com/outcatcher/anwil/domains/logging"
-	"github.com/outcatcher/anwil/domains/storage"
+	"github.com/outcatcher/anwil/domains/internals/config"
+	"github.com/outcatcher/anwil/domains/internals/config/schema"
+	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/outcatcher/anwil/domains/internals/storage"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
+	usersSchema "github.com/outcatcher/anwil/domains/users/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -151,7 +152,7 @@ func mapToSlice(src map[string]string) []string {
 }
 
 func startDBContainer(
-	t *testing.T, ctx context.Context, dbConfig storageDTO.DatabaseConfiguration,
+	t *testing.T, ctx context.Context, dbConfig schema.DatabaseConfiguration,
 ) {
 	t.Helper()
 
@@ -256,7 +257,7 @@ func waitForDBUp(t *testing.T, ctx context.Context, dockerClient *client.Client,
 	}
 }
 
-func createDebugUser(t *testing.T, ctx context.Context, state usersDTO.WithUsers) {
+func createDebugUser(t *testing.T, ctx context.Context, state usersSchema.WithUsers) {
 	err := state.Users().SaveUser(ctx, usersDTO.User{
 		Username: debugUsername,
 		Password: debugPassword,
