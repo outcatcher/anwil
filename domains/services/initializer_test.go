@@ -164,7 +164,7 @@ func TestInitializeServiceWith(t *testing.T) {
 		t.Parallel()
 
 		svc1 := new(testService)
-		expectedErr := errors.New("expected svc init error")
+		expectedErr := errors.New("expected svc init error") //nolint:goerr113
 
 		// initialize with a simple mutator
 		err := InjectServiceWith(svc1, emptyState, func(service, state interface{}) error {
