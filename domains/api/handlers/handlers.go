@@ -16,7 +16,7 @@ import (
 	logDTO "github.com/outcatcher/anwil/domains/internals/logging/schema"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 func handleStatic(engine *gin.Engine, basePath string) {

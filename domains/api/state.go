@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/handlers"
 	auth "github.com/outcatcher/anwil/domains/auth/service"
-	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
+	authSchema "github.com/outcatcher/anwil/domains/auth/service/schema"
 	"github.com/outcatcher/anwil/domains/internals/config"
 	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
 	"github.com/outcatcher/anwil/domains/internals/logging"
@@ -20,8 +20,8 @@ import (
 	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
 	"github.com/outcatcher/anwil/domains/internals/storage"
 	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
-	"github.com/outcatcher/anwil/domains/users"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	users "github.com/outcatcher/anwil/domains/users/service"
+	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 const defaultTimeout = time.Minute
@@ -92,13 +92,13 @@ func (s *State) Config() *configSchema.Configuration {
 }
 
 // Authentication service.
-func (s *State) Authentication() authDTO.Service {
-	return s.services[authDTO.ServiceAuth].(authDTO.Service) //nolint:forcetypeassert
+func (s *State) Authentication() authSchema.Service {
+	return s.services[authSchema.ServiceAuth].(authSchema.Service) //nolint:forcetypeassert
 }
 
 // Users service.
-func (s *State) Users() schema.Service {
-	return s.services[schema.ServiceUsers].(schema.Service) //nolint:forcetypeassert
+func (s *State) Users() usersSchema.Service {
+	return s.services[usersSchema.ServiceUsers].(usersSchema.Service) //nolint:forcetypeassert
 }
 
 // Storage returns shared query executor (i.e. *sqlx.DB).

@@ -1,4 +1,7 @@
-package users
+/*
+Package service contains user service methods
+*/
+package service
 
 import (
 	"context"
@@ -9,7 +12,7 @@ import (
 	"github.com/outcatcher/anwil/domains/internals/services"
 	svcDTO "github.com/outcatcher/anwil/domains/internals/services/schema"
 	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
 

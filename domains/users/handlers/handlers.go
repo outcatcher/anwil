@@ -6,7 +6,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	"github.com/outcatcher/anwil/domains/users/schema"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 // AddUserHandlers - adds user-related endpoints.
