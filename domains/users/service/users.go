@@ -2,14 +2,15 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
-	authDTO "github.com/outcatcher/anwil/domains/auth/dto"
+	"github.com/outcatcher/anwil/domains/internals/password"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/internals/token"
 	"github.com/outcatcher/anwil/domains/users/dto"
-	userStorage "github.com/outcatcher/anwil/domains/users/storage"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
+	"github.com/outcatcher/anwil/domains/users/storage"
 )
 
 // GetUser returns user data by username.
@@ -30,14 +31,24 @@ func (u *users) GetUser(ctx context.Context, username string) (*dto.User, error)
 //
 // user.Password expected to be not encrypted.
 func (u *users) SaveUser(ctx context.Context, user dto.User) error {
-	password, err := u.auth.EncryptPassword(user.Password)
+	pwd, err := password.Encrypt(user.Password, u.privateKey)
 	if err != nil {
 		return fmt.Errorf("error encrypting new user password: %w", err)
 	}
 
-	err = u.storage.InsertUser(ctx, userStorage.Wisher{
+	_, err = u.GetUser(ctx, user.Username)
+
+	switch {
+	case errors.Is(err, services.ErrNotFound):
+	case err == nil:
+		return fmt.Errorf("user %s already exist: %w", user.Username, services.ErrConflict)
+	default:
+		return err
+	}
+
+	err = u.storage.InsertUser(ctx, storage.Wisher{
 		Username: user.Username,
-		Password: password,
+		Password: pwd,
 		FullName: user.FullName,
 	})
 	if err != nil {
@@ -47,19 +58,35 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 	return nil
 }
 
-// GetUserToken validates user credentials and returns token.
-func (u *users) GetUserToken(ctx context.Context, user dto.User) (string, error) {
-	existing, err := u.GetUser(ctx, user.Username)
-	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("%s: %w", user.Username, services.ErrNotFound)
+// ValidateUserToken validates user token.
+func (u *users) ValidateUserToken(_ context.Context, tokenString string) (*dto.JWTClaims, error) {
+	claims, err := token.Validate(tokenString, u.privateKey.Public())
+	if err != nil {
+		return nil, fmt.Errorf("error validating user token: %w", err)
 	}
 
-	err = u.auth.ValidatePassword(user.Password, existing.Password)
+	return &dto.JWTClaims{
+		Username: claims.Username,
+	}, nil
+}
+
+// GenerateUserToken validates user credentials and returns token.
+func (u *users) GenerateUserToken(ctx context.Context, user dto.User) (string, error) {
+	existing, err := u.GetUser(ctx, user.Username)
+	if errors.Is(err, services.ErrNotFound) {
+		return "", fmt.Errorf("user %s: %w", user.Username, services.ErrNotFound)
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("error retreating user: %w", err)
+	}
+
+	err = password.Validate(user.Password, existing.Password, u.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("error validating user credentials: %w", err)
 	}
 
-	tok, err := u.auth.GenerateToken(&authDTO.Claims{Username: user.Username})
+	tok, err := token.Generate(&schema.Claims{Username: user.Username}, u.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("error generating user token: %w", err)
 	}

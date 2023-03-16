@@ -20,7 +20,7 @@ func LoggerFromCtx(ctx context.Context) *log.Logger {
 
 	logger, ok := value.(*log.Logger)
 	if !ok {
-		return nil
+		return log.Default() // make sure we always got a logger to use
 	}
 
 	return logger

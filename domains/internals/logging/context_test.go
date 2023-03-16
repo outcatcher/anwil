@@ -40,7 +40,7 @@ func TestLoggerFromCtx_Nil(t *testing.T) {
 	baseCtx := context.Background()
 
 	actualLogger := LoggerFromCtx(baseCtx)
-	require.Nil(t, actualLogger)
+	require.EqualValues(t, log.Default(), actualLogger)
 }
 
 func TestLoggerFromCtx_ginCtx(t *testing.T) {

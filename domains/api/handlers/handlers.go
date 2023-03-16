@@ -10,8 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
-	authHandlers "github.com/outcatcher/anwil/domains/auth/handlers"
-	authDTO "github.com/outcatcher/anwil/domains/auth/service/schema"
 	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
 	logDTO "github.com/outcatcher/anwil/domains/internals/logging/schema"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
@@ -27,7 +25,6 @@ func handleStatic(engine *gin.Engine, basePath string) {
 type handlersState interface {
 	logDTO.WithLogger
 	schema.WithUsers
-	authDTO.WithAuth
 	configSchema.WithConfig
 }
 
@@ -78,7 +75,6 @@ func PopulateEndpoints(engine *gin.Engine, state handlersState) error {
 
 	err := apiHandlers.populate(
 		map[string]services.AddHandlersFunc{
-			"auth":  authHandlers.AddAuthHandlers(state),
 			"users": userHandlers.AddUserHandlers(state),
 		},
 	)
