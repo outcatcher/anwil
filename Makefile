@@ -13,8 +13,8 @@ test: vet
 	go tool cover -html=coverage.out -o coverage.html
 
 test-integration: vet
-	go test -tags acceptance -covermode atomic -coverpkg=./domains/... -coverprofile=integration-coverage.out -timeout 1m -v ./...
-	go tool cover -html=integration-coverage.out -o integration-coverage.html
+	go test -tags acceptance -covermode atomic -coverpkg=./domains/... -coverprofile=coverage.out -timeout 1m -v ./...
+	go tool cover -html=coverage.out -o coverage.html
 
 lint:
 	golangci-lint run ./...
