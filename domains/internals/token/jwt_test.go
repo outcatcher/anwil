@@ -1,13 +1,14 @@
-package service
+package token
 
 import (
+	"crypto"
+	"crypto/ed25519"
 	"encoding/hex"
 	"testing"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/outcatcher/anwil/domains/auth/dto"
-	"github.com/outcatcher/anwil/domains/auth/service/schema"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -26,7 +27,16 @@ const (
 type AuthTests struct {
 	suite.Suite
 
-	auth schema.Service
+	privateKey ed25519.PrivateKey
+	publicKey  crypto.PublicKey
+}
+
+func (s *AuthTests) SetupSuite() {
+	pKey, err := hex.DecodeString(privateKey)
+	require.NoError(s.T(), err)
+
+	s.privateKey = pKey
+	s.publicKey = s.privateKey.Public()
 }
 
 func (s *AuthTests) TestGenerateToken() {
@@ -36,9 +46,9 @@ func (s *AuthTests) TestGenerateToken() {
 	t.Run("w/ claims", func(t *testing.T) {
 		t.Parallel()
 
-		claims := &dto.Claims{Username: "random-username"}
+		claims := &schema.Claims{Username: "random-username"}
 
-		tok, err := s.auth.GenerateToken(claims)
+		tok, err := Generate(claims, s.privateKey)
 		require.NoError(t, err)
 		require.NotEmpty(t, tok)
 	})
@@ -46,7 +56,7 @@ func (s *AuthTests) TestGenerateToken() {
 	t.Run("w/o claims", func(t *testing.T) {
 		t.Parallel()
 
-		tok, err := s.auth.GenerateToken(nil)
+		tok, err := Generate(nil, s.privateKey)
 		require.NoError(t, err)
 		require.NotEmpty(t, tok)
 	})
@@ -54,12 +64,8 @@ func (s *AuthTests) TestGenerateToken() {
 	t.Run("w/ invalid key", func(t *testing.T) {
 		t.Parallel()
 
-		auth2 := &auth{
-			privateKey: make([]byte, 0),
-		}
-
-		_, err := auth2.GenerateToken(nil)
-		require.ErrorIs(t, err, dto.ErrInvalidPrivateKeySize)
+		_, err := Generate(nil, make([]byte, 0))
+		require.ErrorIs(t, err, schema.ErrInvalidPrivateKeySize)
 	})
 }
 
@@ -71,9 +77,7 @@ func (s *AuthTests) TestValidateToken() {
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		// claims := &Claims{Username: "random-username"}
-
-		claims, err := s.auth.ValidateToken(token)
+		claims, err := Validate(token, s.publicKey)
 		require.NoError(t, err)
 		require.Equal(t, "random-username", claims.Username)
 	})
@@ -85,11 +89,7 @@ func (s *AuthTests) TestValidateToken() {
 			"8935b0786ec428ede4c0d6cba5d12fe166c67b660177f879a4bb750ee67dceec1b624eee")
 		require.NoError(t, err)
 
-		auth2 := &auth{
-			privateKey: privateKey,
-		}
-
-		_, err = auth2.ValidateToken(token)
+		_, err = Validate(token, ed25519.PrivateKey(privateKey).Public())
 		require.ErrorIs(t, err, jwt.ErrTokenSignatureInvalid)
 		require.ErrorIs(t, err, services.ErrUnauthorized)
 	})
@@ -99,14 +99,11 @@ func (s *AuthTests) TestValidateToken() {
 
 		tok := jwt.New(jwt.SigningMethodHS512)
 
-		privateKeyDecoded, err := hex.DecodeString(privateKey)
+		signedString, err := tok.SignedString([]byte(s.privateKey))
 		require.NoError(t, err)
 
-		signedString, err := tok.SignedString(privateKeyDecoded)
-		require.NoError(t, err)
-
-		_, err = s.auth.ValidateToken(signedString)
-		require.ErrorIs(t, err, dto.ErrUnexpectedSignMethod)
+		_, err = Validate(signedString, s.publicKey)
+		require.ErrorIs(t, err, schema.ErrUnexpectedSignMethod)
 		require.ErrorIs(t, err, services.ErrUnauthorized)
 	})
 }
@@ -114,16 +111,5 @@ func (s *AuthTests) TestValidateToken() {
 func TestAuth(t *testing.T) {
 	t.Parallel()
 
-	privateKeyDecoded, err := hex.DecodeString(privateKey)
-	require.NoError(t, err)
-
-	s := &AuthTests{
-		auth: &auth{
-			privateKey: privateKeyDecoded,
-		},
-	}
-
-	t.Log(hex.EncodeToString(privateKeyDecoded))
-
-	suite.Run(t, s)
+	suite.Run(t, new(AuthTests))
 }

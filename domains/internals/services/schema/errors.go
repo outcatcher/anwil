@@ -11,4 +11,6 @@ var (
 	ErrForbidden = errors.New("forbidden")
 	// ErrUnauthorized - error for authorization failures.
 	ErrUnauthorized = errors.New("not authorized")
+	// ErrConflict - error for conflicting data.
+	ErrConflict = errors.New("conflict")
 )

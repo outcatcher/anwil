@@ -25,11 +25,26 @@ func TestConvertErrors(t *testing.T) {
 	cases := []struct {
 		inputErr     error
 		expectedCode int
+		expectedBody string
 	}{
-		{errForTest, http.StatusInternalServerError},
-		{services.ErrUnauthorized, http.StatusUnauthorized},
-		{services.ErrForbidden, http.StatusForbidden},
-		{services.ErrNotFound, http.StatusNotFound},
+		{services.ErrUnauthorized, http.StatusUnauthorized, ""},
+		{services.ErrForbidden, http.StatusForbidden, ""},
+
+		{
+			errForTest,
+			http.StatusInternalServerError,
+			fmt.Sprintf(`{"reason":"%s"}`, errForTest),
+		},
+		{
+			services.ErrConflict,
+			http.StatusInternalServerError,
+			fmt.Sprintf(`{"reason":"%s"}`, services.ErrConflict),
+		},
+		{
+			services.ErrNotFound,
+			http.StatusNotFound,
+			fmt.Sprintf(`{"reason":"%s"}`, services.ErrNotFound),
+		},
 	}
 
 	for _, data := range cases {
@@ -55,7 +70,7 @@ func TestConvertErrors(t *testing.T) {
 			ConvertErrors(ginCtx)
 
 			require.Contains(t, logWriter.String(), data.inputErr.Error())
-			t.Log(logWriter.String())
+			require.EqualValues(t, recorder.Body.String(), data.expectedBody)
 
 			require.True(t, ginCtx.IsAborted())
 		})

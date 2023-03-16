@@ -1,6 +1,17 @@
-package dto
+package schema
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/golang-jwt/jwt/v4"
+)
+
+// Claims - JWT payload contents.
+type Claims struct {
+	jwt.RegisteredClaims
+
+	Username string `json:"username"`
+}
 
 var (
 	// ErrUnexpectedSignMethod - signing method not supported.

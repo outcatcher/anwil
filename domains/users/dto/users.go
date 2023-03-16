@@ -9,3 +9,8 @@ type User struct {
 	Password string `json:"-"` // hex-encoded password, make sure it's not reaching JSON
 	FullName string `json:"full_name"`
 }
+
+// JWTClaims contains data stored in JWT.
+type JWTClaims struct {
+	Username string `json:"username"`
+}

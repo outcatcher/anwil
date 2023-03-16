@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +14,7 @@ import (
 func closingRecorder(t *testing.T) *httptest.ResponseRecorder {
 	t.Helper()
 
-	recorder := new(httptest.ResponseRecorder)
+	recorder := &httptest.ResponseRecorder{Body: new(bytes.Buffer)}
 
 	t.Cleanup(func() {
 		result := recorder.Result()

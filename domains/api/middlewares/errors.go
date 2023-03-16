@@ -10,19 +10,26 @@ import (
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 )
 
+type responseError struct {
+	Code   int    `json:"-"`
+	Reason string `json:"reason,omitempty"`
+}
+
 // statusCodeFromError returns status code for corresponding error.
-func statusCodeFromError(err error) int {
+func statusCodeFromError(err error) responseError {
 	switch {
 	case err == nil:
-		return http.StatusOK
+		return responseError{Code: http.StatusOK}
 	case errors.Is(err, services.ErrUnauthorized):
-		return http.StatusUnauthorized
+		return responseError{Code: http.StatusUnauthorized}
 	case errors.Is(err, services.ErrForbidden):
-		return http.StatusForbidden
+		return responseError{Code: http.StatusForbidden}
 	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
-		return http.StatusNotFound
+		return responseError{Code: http.StatusNotFound, Reason: err.Error()}
+	case errors.Is(err, services.ErrConflict):
+		return responseError{Code: http.StatusConflict, Reason: err.Error()}
 	default:
-		return http.StatusInternalServerError
+		return responseError{Code: http.StatusInternalServerError, Reason: err.Error()}
 	}
 }
 
@@ -44,7 +51,13 @@ func ConvertErrors(c *gin.Context) {
 
 	statusCode := statusCodeFromError(err)
 
-	c.AbortWithStatus(statusCode)
+	if statusCode.Reason == "" {
+		c.AbortWithStatus(statusCode.Code)
+	} else {
+		c.AbortWithStatusJSON(statusCode.Code, statusCode)
+	}
 
-	log.Printf("error response code %d (%s) with reason: %s", statusCode, http.StatusText(statusCode), err)
+	log.Printf("error response code %d (%s) with reason: %s",
+		statusCode.Code, http.StatusText(statusCode.Code), err,
+	)
 }

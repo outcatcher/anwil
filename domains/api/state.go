@@ -11,8 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/handlers"
-	auth "github.com/outcatcher/anwil/domains/auth/service"
-	authSchema "github.com/outcatcher/anwil/domains/auth/service/schema"
 	"github.com/outcatcher/anwil/domains/internals/config"
 	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
 	"github.com/outcatcher/anwil/domains/internals/logging"
@@ -91,11 +89,6 @@ func (s *State) Config() *configSchema.Configuration {
 	return s.cfg
 }
 
-// Authentication service.
-func (s *State) Authentication() authSchema.Service {
-	return s.services[authSchema.ServiceAuth].(authSchema.Service) //nolint:forcetypeassert
-}
-
 // Users service.
 func (s *State) Users() usersSchema.Service {
 	return s.services[usersSchema.ServiceUsers].(usersSchema.Service) //nolint:forcetypeassert
@@ -124,7 +117,7 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 		storage: db,
 	}
 
-	apiState.WithServices(auth.New(), users.New())
+	apiState.WithServices(users.New())
 
 	initialized, err := services.Initialize(ctx, apiState, apiState.services)
 	if err != nil {

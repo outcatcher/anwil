@@ -1,7 +1,9 @@
-package service
+/*
+Package password contains password-related functions
+*/
+package password
 
 import (
-	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
@@ -11,9 +13,9 @@ import (
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 )
 
-var errMissingPrivateKey = errors.New("missing private key")
+var errMissingPrivateKey = errors.New("missing encryption key")
 
-func encrypt(src string, key ed25519.PrivateKey) ([]byte, error) {
+func encrypt(src string, key []byte) ([]byte, error) {
 	if len(key) == 0 {
 		return nil, fmt.Errorf("error encrypting password: %w", errMissingPrivateKey)
 	}
@@ -28,9 +30,9 @@ func encrypt(src string, key ed25519.PrivateKey) ([]byte, error) {
 	return hmc.Sum(nil), nil
 }
 
-// EncryptPassword encrypts password with same key as used for JWT.
-func (a *auth) EncryptPassword(src string) (string, error) {
-	encrypted, err := encrypt(src, a.privateKey)
+// Encrypt encrypts password with a private key.
+func Encrypt(src string, key []byte) (string, error) {
+	encrypted, err := encrypt(src, key)
 	if err != nil {
 		return "", err
 	}
@@ -38,14 +40,14 @@ func (a *auth) EncryptPassword(src string) (string, error) {
 	return hex.EncodeToString(encrypted), nil
 }
 
-// ValidatePassword compares given password to be equal with a given encrypted password.
-func (a *auth) ValidatePassword(input, encrypted string) error {
+// Validate compares given password to be equal with a given encrypted password.
+func Validate(input, encrypted string, key []byte) error {
 	macCompared, err := hex.DecodeString(encrypted)
 	if err != nil {
 		return fmt.Errorf("error decoding encrypted password: %w", err)
 	}
 
-	macInput, err := encrypt(input, a.privateKey)
+	macInput, err := encrypt(input, key)
 	if err != nil {
 		return err
 	}

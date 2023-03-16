@@ -44,7 +44,7 @@ func handleAuthorize(usr schema.Service) gin.HandlerFunc {
 			Password: req.Password,
 		}
 
-		tok, err := usr.GetUserToken(c.Request.Context(), user)
+		tok, err := usr.GenerateUserToken(c.Request.Context(), user)
 		if err != nil {
 			_ = c.Error(err)
 
