@@ -1,5 +1,3 @@
-SHELL=/usr/bin/bash
-
 .PHONY: all build run vet test lint
 
 build:
