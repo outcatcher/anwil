@@ -20,7 +20,7 @@ jobs:
           version: v1.51.2
 
   unit-test:
-    runs-on: ububntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Set up Go
