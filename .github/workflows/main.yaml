@@ -19,7 +19,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     container:
-      image: 'golang:1.20-alpine3.17'
+      image: 'golang:1.20'
     steps:
       - uses: actions/checkout@v3
       - name: Run unit tests
