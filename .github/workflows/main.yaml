@@ -32,6 +32,8 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Run unit tests
         run: make test
+      - name: Pull postgres
+        run: docker pull postgres:15.2-alpine3.17
       - name: Run integration tests
         run: make test-integration
       - name: Upload coverage reports to Codecov
