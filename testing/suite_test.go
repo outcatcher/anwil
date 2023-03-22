@@ -44,6 +44,8 @@ const (
 	debugPassword = "debug"
 )
 
+type mapBody map[string]interface{}
+
 // AnwilSuite - handlers tests.
 type AnwilSuite struct {
 	suite.Suite
@@ -137,7 +139,9 @@ func (s *AnwilSuite) SetupSuite() {
 	srv, err := apiState.Server(ctx)
 	require.NoError(t, err)
 
-	// gin engine as a handler function
+	// gin engine as a handler function.
+	// Note that context is not passed when using handler this way.
+	// This is not equivalent to starting server with Serve.
 	s.apiHandler = srv.Handler.ServeHTTP
 }
 

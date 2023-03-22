@@ -7,23 +7,23 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	svcDTO "github.com/outcatcher/anwil/domains/internals/services/schema"
+	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
 	"github.com/stretchr/testify/require"
 )
 
 type testService struct {
-	id svcDTO.ServiceID
+	id svcSchema.ServiceID
 
 	expectedInitError error
 	initCalled        atomic.Int32
 
-	dependencies []svcDTO.ServiceID
+	dependencies []svcSchema.ServiceID
 }
 
 // ID returns UUID unique to each testService instance.
-func (t *testService) ID() svcDTO.ServiceID {
+func (t *testService) ID() svcSchema.ServiceID {
 	if t.id == "" {
-		t.id = svcDTO.ServiceID(uuid.New().String())
+		t.id = svcSchema.ServiceID(uuid.New().String())
 	}
 
 	return t.id
@@ -37,12 +37,12 @@ func (t *testService) Init(context.Context, interface{}) error {
 }
 
 // DependsOn returns dependencies.
-func (t *testService) DependsOn() []svcDTO.ServiceID {
+func (t *testService) DependsOn() []svcSchema.ServiceID {
 	return t.dependencies
 }
 
-func svcMapping(services ...svcDTO.Service) svcDTO.ServiceMapping {
-	mapping := make(svcDTO.ServiceMapping)
+func svcMapping(services ...svcSchema.Service) svcSchema.ServiceMapping {
+	mapping := make(svcSchema.ServiceMapping)
 
 	for _, svc := range services {
 		mapping[svc.ID()] = svc
@@ -60,7 +60,7 @@ func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test f
 		t.Parallel()
 		// normal
 		svc1 := &testService{}
-		svc2 := &testService{dependencies: []svcDTO.ServiceID{svc1.ID()}}
+		svc2 := &testService{dependencies: []svcSchema.ServiceID{svc1.ID()}}
 
 		mapping, err := Initialize(context.Background(), emptyState, svcMapping(svc2, svc1))
 		require.NoError(t, err)
@@ -72,11 +72,11 @@ func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test f
 
 		svc1 := &testService{}
 
-		services := make([]svcDTO.Service, 1, 11)
+		services := make([]svcSchema.Service, 1, 11)
 		services[0] = svc1
 
 		for i := 0; i < 10; i++ {
-			services = append(services, &testService{dependencies: []svcDTO.ServiceID{svc1.ID()}})
+			services = append(services, &testService{dependencies: []svcSchema.ServiceID{svc1.ID()}})
 		}
 
 		_, err := Initialize(context.Background(), emptyState, svcMapping(services...))
@@ -88,10 +88,10 @@ func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test f
 	t.Run("cyclic direct", func(t *testing.T) {
 		t.Parallel()
 
-		id2 := svcDTO.ServiceID(uuid.New().String())
+		id2 := svcSchema.ServiceID(uuid.New().String())
 
-		svc1 := &testService{dependencies: []svcDTO.ServiceID{id2}}
-		svc2 := &testService{id: id2, dependencies: []svcDTO.ServiceID{svc1.ID()}}
+		svc1 := &testService{dependencies: []svcSchema.ServiceID{id2}}
+		svc2 := &testService{id: id2, dependencies: []svcSchema.ServiceID{svc1.ID()}}
 
 		_, err := Initialize(context.Background(), emptyState, svcMapping(svc2, svc1))
 		require.ErrorIs(t, err, errCyclicServiceDependency)
@@ -100,11 +100,11 @@ func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test f
 	t.Run("cyclic indirect", func(t *testing.T) {
 		t.Parallel()
 
-		id3 := svcDTO.ServiceID(uuid.New().String())
+		id3 := svcSchema.ServiceID(uuid.New().String())
 
-		svc1 := &testService{dependencies: []svcDTO.ServiceID{id3}}
-		svc2 := &testService{dependencies: []svcDTO.ServiceID{svc1.ID()}}
-		svc3 := &testService{dependencies: []svcDTO.ServiceID{svc2.ID()}, id: id3}
+		svc1 := &testService{dependencies: []svcSchema.ServiceID{id3}}
+		svc2 := &testService{dependencies: []svcSchema.ServiceID{svc1.ID()}}
+		svc3 := &testService{dependencies: []svcSchema.ServiceID{svc2.ID()}, id: id3}
 
 		_, err := Initialize(context.Background(), emptyState, svcMapping(svc2, svc1, svc3))
 		require.ErrorIs(t, err, errCyclicServiceDependency)
@@ -113,8 +113,8 @@ func TestInitialize(t *testing.T) { //nolint:funlen // this is a grouping test f
 	t.Run("cyclic self", func(t *testing.T) {
 		t.Parallel()
 
-		id1 := svcDTO.ServiceID(uuid.New().String())
-		svc1 := &testService{id: id1, dependencies: []svcDTO.ServiceID{id1}}
+		id1 := svcSchema.ServiceID(uuid.New().String())
+		svc1 := &testService{id: id1, dependencies: []svcSchema.ServiceID{id1}}
 
 		_, err := Initialize(context.Background(), emptyState, svcMapping(svc1))
 		require.ErrorIs(t, err, errCyclicServiceDependency)
@@ -150,7 +150,7 @@ func TestInitializeServiceWith(t *testing.T) {
 			tServ, ok := service.(*testService)
 			require.True(t, ok)
 
-			tServ.id = svcDTO.ServiceID(expectedID)
+			tServ.id = svcSchema.ServiceID(expectedID)
 
 			return nil
 		})

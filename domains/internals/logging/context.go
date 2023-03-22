@@ -2,6 +2,7 @@ package logging
 
 import (
 	"context"
+	"io"
 	"log"
 )
 
@@ -20,7 +21,7 @@ func LoggerFromCtx(ctx context.Context) *log.Logger {
 
 	logger, ok := value.(*log.Logger)
 	if !ok {
-		return log.Default() // make sure we always got a logger to use
+		return log.New(io.Discard, "", 0) // discard log if no logger in context
 	}
 
 	return logger

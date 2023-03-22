@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
-	logDTO "github.com/outcatcher/anwil/domains/internals/logging/schema"
+	logSchema "github.com/outcatcher/anwil/domains/internals/logging/schema"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
@@ -23,7 +23,7 @@ func handleStatic(engine *gin.Engine, basePath string) {
 }
 
 type handlersState interface {
-	logDTO.WithLogger
+	logSchema.WithLogger
 	schema.WithUsers
 	configSchema.WithConfig
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"testing"
 
 	"github.com/stretchr/testify/require"
 )
@@ -50,30 +51,6 @@ func (s *AnwilSuite) login() string {
 	return loginResponse.Token
 }
 
-func (s *AnwilSuite) TestLogin() {
-	t := s.T()
-	t.Parallel()
-
-	s.login()
-}
-
-func (s *AnwilSuite) TestLoginInvalidPassword() {
-	t := s.T()
-	t.Parallel()
-
-	response := s.requestJSON(
-		http.MethodPost,
-		parseRequestURL(t, "/api/v1/login"),
-		map[string]interface{}{
-			"username": debugUsername,
-			"password": "asdafqfqwef!",
-		},
-		nil,
-	)
-
-	require.Equal(t, http.StatusUnauthorized, response.Code)
-}
-
 func addAuthHeader(token string, src map[string]string) map[string]string {
 	if src == nil {
 		src = make(map[string]string)
@@ -100,4 +77,37 @@ func (s *AnwilSuite) TestSecureEcho() {
 	require.NoError(t, err)
 
 	require.Equal(t, http.StatusOK, response.Code, string(body))
+}
+
+func (s *AnwilSuite) TestSecureEcho_401() {
+	t := s.T()
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		headers map[string]string
+	}{
+		{"missing", nil},
+		{"empty", addAuthHeader("", nil)},
+		{"invalid", addAuthHeader("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."+
+			"eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ."+
+			"SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", nil)},
+	}
+
+	for _, data := range cases {
+		data := data
+
+		t.Run(data.name, func(t *testing.T) {
+			t.Parallel()
+
+			response := s.requestJSON(
+				http.MethodGet,
+				parseRequestURL(t, "/api/v1/auth-echo"),
+				nil,
+				data.headers,
+			)
+
+			require.Equal(t, http.StatusUnauthorized, response.Code, response.Body.String())
+		})
+	}
 }

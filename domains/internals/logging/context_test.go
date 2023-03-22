@@ -3,6 +3,7 @@ package logging
 import (
 	"bytes"
 	"context"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -40,7 +41,7 @@ func TestLoggerFromCtx_Nil(t *testing.T) {
 	baseCtx := context.Background()
 
 	actualLogger := LoggerFromCtx(baseCtx)
-	require.EqualValues(t, log.Default(), actualLogger)
+	require.Equal(t, io.Discard, actualLogger.Writer())
 }
 
 func TestLoggerFromCtx_ginCtx(t *testing.T) {
