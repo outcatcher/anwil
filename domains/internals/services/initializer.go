@@ -104,7 +104,7 @@ type InjectFunc func(service, state interface{}) error
 //	err := services.InjectServiceWith(
 //		authService, state,
 //		configDTO.ConfigInject,
-//		logDTO.LoggerInject,
+//		logSchema.LoggerInject,
 //	)
 func InjectServiceWith(service schema.Service, state interface{}, injects ...InjectFunc) error {
 	for _, initFunc := range injects {

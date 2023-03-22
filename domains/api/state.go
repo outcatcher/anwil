@@ -17,7 +17,7 @@ import (
 	"github.com/outcatcher/anwil/domains/internals/services"
 	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
 	"github.com/outcatcher/anwil/domains/internals/storage"
-	storageDTO "github.com/outcatcher/anwil/domains/internals/storage/schema"
+	storageSchema "github.com/outcatcher/anwil/domains/internals/storage/schema"
 	users "github.com/outcatcher/anwil/domains/users/service"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 )
@@ -29,7 +29,7 @@ type State struct {
 	cfg *configSchema.Configuration
 
 	log     *log.Logger
-	storage storageDTO.QueryExecutor
+	storage storageSchema.QueryExecutor
 
 	services svcSchema.ServiceMapping
 }
@@ -64,7 +64,7 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	return server, nil
 }
 
-// WithServices uses selected service mapping.
+// WithServices uses selected services.
 func (s *State) WithServices(services ...svcSchema.Service) {
 	if s.services == nil {
 		s.services = make(svcSchema.ServiceMapping)
@@ -75,12 +75,8 @@ func (s *State) WithServices(services ...svcSchema.Service) {
 	}
 }
 
-// Logger returns configured logger or a default one.
+// Logger returns configured logger.
 func (s *State) Logger() *log.Logger {
-	if s.log == nil {
-		s.log = log.Default()
-	}
-
 	return s.log
 }
 
@@ -95,7 +91,7 @@ func (s *State) Users() usersSchema.Service {
 }
 
 // Storage returns shared query executor (i.e. *sqlx.DB).
-func (s *State) Storage() storageDTO.QueryExecutor {
+func (s *State) Storage() storageSchema.QueryExecutor {
 	return s.storage
 }
 

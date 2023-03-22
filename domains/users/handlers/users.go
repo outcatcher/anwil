@@ -8,20 +8,18 @@ import (
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
-type reqUserCreate struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	FullName string `json:"full_name"`
+type createUser struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+	FullName string `json:"full_name" validate:"required"`
 }
 
 func handleUserRegister(usr schema.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
-		req := new(reqUserCreate)
+		req := new(createUser)
 
-		if err := c.Bind(req); err != nil {
-			c.AbortWithStatus(http.StatusBadRequest)
-
+		if err := bindAndValidateJSON(c, req); err != nil {
 			return
 		}
 
@@ -31,10 +29,11 @@ func handleUserRegister(usr schema.Service) gin.HandlerFunc {
 			FullName: "",
 		})
 		if err != nil {
-			// FIXME: determine exact error to status code mapping
-			c.AbortWithStatus(http.StatusInternalServerError)
+			_ = c.Error(err)
 
 			return
 		}
+
+		c.AbortWithStatus(http.StatusCreated)
 	}
 }

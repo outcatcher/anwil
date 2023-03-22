@@ -10,6 +10,7 @@ import (
 	"log"
 
 	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
+	logSchema "github.com/outcatcher/anwil/domains/internals/logging/schema"
 	"github.com/outcatcher/anwil/domains/internals/services"
 	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
 	storageSchema "github.com/outcatcher/anwil/domains/internals/storage/schema"
@@ -56,6 +57,7 @@ func (u *users) Init(ctx context.Context, state interface{}) error {
 	err := services.InjectServiceWith(
 		u, state,
 		storageSchema.StorageInject,
+		logSchema.LoggerInject,
 		configSchema.ConfigInject,
 	)
 	if err != nil {

@@ -6,6 +6,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/internals/validation"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
@@ -20,4 +21,18 @@ func AddUserHandlers(state schema.WithUsers) services.AddHandlersFunc {
 
 		return nil
 	}
+}
+
+// bindAndValidateJSON binds request body to structure,
+// validates it using `validate` tag and trows errors into gin context.
+func bindAndValidateJSON(c *gin.Context, req any) error {
+	if err := c.Bind(req); err != nil {
+		return c.Error(err)
+	}
+
+	if err := validation.ValidateJSONCtx(c.Request.Context(), req); err != nil {
+		return c.Error(err)
+	}
+
+	return nil
 }

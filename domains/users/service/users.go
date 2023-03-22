@@ -41,7 +41,7 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 	switch {
 	case errors.Is(err, services.ErrNotFound):
 	case err == nil:
-		return fmt.Errorf("user %s already exist: %w", user.Username, services.ErrConflict)
+		return fmt.Errorf("%w: user %s already exist", services.ErrConflict, user.Username)
 	default:
 		return err
 	}

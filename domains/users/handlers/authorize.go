@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,9 +10,9 @@ import (
 
 type credentialsRequest struct {
 	// Username
-	Username string `json:"username"`
+	Username string `json:"username" validate:"required"`
 	// SHA256 - HMAC encrypted password
-	Password string `json:"password"`
+	Password string `json:"password" validate:"required"`
 }
 
 type jwtResponse struct {
@@ -24,18 +23,7 @@ func handleAuthorize(usr schema.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		req := new(credentialsRequest)
 
-		if err := c.Bind(req); err != nil {
-			log.Println(err)
-
-			c.Abort()
-
-			return
-		}
-
-		if req.Username == "" || req.Password == "" {
-			c.String(http.StatusBadRequest, "missing credentials")
-			c.Abort()
-
+		if err := bindAndValidateJSON(c, req); err != nil {
 			return
 		}
 
@@ -51,6 +39,6 @@ func handleAuthorize(usr schema.Service) gin.HandlerFunc {
 			return
 		}
 
-		c.JSON(http.StatusOK, jwtResponse{Token: tok})
+		c.AbortWithStatusJSON(http.StatusOK, jwtResponse{Token: tok})
 	}
 }

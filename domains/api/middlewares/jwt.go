@@ -1,45 +1,44 @@
 package middlewares
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/internals/logging"
+	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/internals/validation"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 const (
-	authHeader = "Authorization"
-
 	tokenPrefix = "Bearer "
 
 	contextKeyUsername = "username"
 )
 
+type reqAuth struct {
+	Authorization string `header:"Authorization" validate:"required,jwt-header"`
+}
+
 // JWTAuth check JWT and loads user info into Gin context.
+//
+// This middleware happens before request is processed, so we need to abort context early,
+// so main handler won't be triggered.
 func JWTAuth(state schema.WithUsers) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header := c.GetHeader(authHeader)
+		req := new(reqAuth)
 
-		logger := logging.LoggerFromCtx(c.Request.Context())
-
-		if header == "" {
-			logger.Println("empty auth header")
-
-			c.String(http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+		if err := bindAndValidateHeader(c, req); err != nil {
+			_ = c.Error(services.ErrUnauthorized)
 			c.Abort()
 
 			return
 		}
 
-		tokenString := strings.TrimPrefix(header, tokenPrefix)
+		tokenString := strings.TrimPrefix(req.Authorization, tokenPrefix)
 
 		claims, err := state.Users().ValidateUserToken(c.Request.Context(), tokenString)
 		if err != nil {
-			logger.Println("error in JWT:", err)
-
-			c.String(http.StatusForbidden, http.StatusText(http.StatusForbidden))
+			_ = c.Error(err)
 			c.Abort()
 
 			return
@@ -47,4 +46,18 @@ func JWTAuth(state schema.WithUsers) gin.HandlerFunc {
 
 		c.Set(contextKeyUsername, claims.Username)
 	}
+}
+
+// bindAndValidateHeader binds request body to structure,
+// validates it using `validate` tag and trows errors into gin context.
+func bindAndValidateHeader(c *gin.Context, req any) error {
+	if err := c.BindHeader(req); err != nil {
+		return c.Error(err)
+	}
+
+	if err := validation.ValidateHeaderCtx(c.Request.Context(), req); err != nil {
+		return c.Error(err)
+	}
+
+	return nil
 }

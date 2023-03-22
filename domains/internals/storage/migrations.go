@@ -27,9 +27,7 @@ func ApplyMigrations(cfg config.DatabaseConfiguration) error {
 		return fmt.Errorf("error getting abs path for %s: %w", migrationsPath, err)
 	}
 
-	migrationsPath = absPath
-
-	if err := goose.Up(db.DB, migrationsPath, goose.WithAllowMissing()); err != nil {
+	if err := goose.Up(db.DB, absPath, goose.WithAllowMissing()); err != nil {
 		return fmt.Errorf("error applying migrations: %w", err)
 	}
 
