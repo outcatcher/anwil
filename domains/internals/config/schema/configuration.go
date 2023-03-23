@@ -9,21 +9,16 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/outcatcher/anwil/domains/internals/services"
 )
 
 const encodedPrivateKeyLen = 128
-
-var (
-	errStateWithoutConfig   = errors.New("given state has no config")
-	errServiceWithoutConfig = errors.New("given service does not support config")
-)
 
 // WithConfig can return configuration.
 type WithConfig interface {
@@ -38,18 +33,13 @@ type RequiresConfig interface {
 }
 
 // ConfigInject injects configuration into service.
-func ConfigInject(service interface{}, state interface{}) error {
-	reqConfig, ok := service.(RequiresConfig)
-	if !ok {
-		return fmt.Errorf("error intializing service config: %w", errServiceWithoutConfig)
+func ConfigInject(consumer, provider any) error {
+	reqConfig, provConfig, err := services.ValidateArgInterfaces[RequiresConfig, WithConfig](consumer, provider)
+	if err != nil {
+		return fmt.Errorf("error injecting configuration: %w", err)
 	}
 
-	stateWithConfig, ok := state.(WithConfig)
-	if !ok {
-		return fmt.Errorf("error intializing service config: %w", errStateWithoutConfig)
-	}
-
-	reqConfig.UseConfig(stateWithConfig.Config())
+	reqConfig.UseConfig(provConfig.Config())
 
 	return nil
 }

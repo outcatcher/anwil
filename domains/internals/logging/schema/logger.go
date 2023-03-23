@@ -4,14 +4,10 @@ Package schema contains DTOs for logging helpers
 package schema
 
 import (
-	"errors"
 	"fmt"
 	"log"
-)
 
-var (
-	errStateWithoutLogger   = errors.New("given state has no logging")
-	errServiceWithoutLogger = errors.New("given service does not support logging")
+	"github.com/outcatcher/anwil/domains/internals/services"
 )
 
 // WithLogger containing logger.
@@ -25,18 +21,13 @@ type RequiresLogger interface {
 }
 
 // LoggerInject injects logger into service.
-func LoggerInject(service interface{}, state interface{}) error {
-	reqConfig, ok := service.(RequiresLogger)
-	if !ok {
-		return fmt.Errorf("error intializing logging: %w", errServiceWithoutLogger)
+func LoggerInject(consumer, provider any) error {
+	reqLogger, provLogger, err := services.ValidateArgInterfaces[RequiresLogger, WithLogger](consumer, provider)
+	if err != nil {
+		return fmt.Errorf("error injecting logger: %w", err)
 	}
 
-	stateWithConfig, ok := state.(WithLogger)
-	if !ok {
-		return fmt.Errorf("error intializing logging: %w", errStateWithoutLogger)
-	}
-
-	reqConfig.UseLogger(stateWithConfig.Logger())
+	reqLogger.UseLogger(provLogger.Logger())
 
 	return nil
 }

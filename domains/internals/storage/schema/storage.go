@@ -6,15 +6,10 @@ package schema
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-)
-
-var (
-	errStateWithoutStorage   = errors.New("given state has no storage")
-	errServiceWithoutStorage = errors.New("given service does not support storage")
+	"github.com/outcatcher/anwil/domains/internals/services"
 )
 
 // WithStorage defines service or state having storage attached.
@@ -28,18 +23,13 @@ type RequiresStorage interface {
 }
 
 // StorageInject adds storage to the service.
-func StorageInject(serv, state interface{}) error {
-	reqStorage, ok := serv.(RequiresStorage)
-	if !ok {
-		return fmt.Errorf("error intializing service storage: %w", errServiceWithoutStorage)
+func StorageInject(consumer, provider any) error {
+	reqStorage, provStorage, err := services.ValidateArgInterfaces[RequiresStorage, WithStorage](consumer, provider)
+	if err != nil {
+		return fmt.Errorf("error injecting storage: %w", err)
 	}
 
-	stateWithStorage, ok := state.(WithStorage)
-	if !ok {
-		return fmt.Errorf("error intializing service storage: %w", errStateWithoutStorage)
-	}
-
-	reqStorage.UseStorage(stateWithStorage.Storage())
+	reqStorage.UseStorage(provStorage.Storage())
 
 	return nil
 }

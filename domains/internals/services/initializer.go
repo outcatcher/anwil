@@ -14,6 +14,9 @@ import (
 var (
 	errCyclicServiceDependency = errors.New("service dependency cycle detected")
 	errServiceNotInState       = errors.New("service is missing in service map")
+
+	errNotNeeded   = errors.New("consumer not expecting injection")
+	errNotProvided = errors.New("provider doesn't provide injection")
 )
 
 type serviceState int
@@ -93,7 +96,26 @@ func Initialize(
 }
 
 // InjectFunc - function injecting something into service.
-type InjectFunc func(service, state interface{}) error
+type InjectFunc func(consumer, provider interface{}) error
+
+// ValidateArgInterfaces is a helper method to assert types of consumer and provider.
+//
+// Example
+//
+//	reqStorage, provStorage, err := services.ValidateArgInterfaces[RequiresStorage, WithStorage](serv, state)
+func ValidateArgInterfaces[TCons any, TProv any](consumer, provider any) (cons TCons, prov TProv, err error) {
+	srv, ok := consumer.(TCons)
+	if !ok {
+		return cons, prov, errNotNeeded
+	}
+
+	stt, ok := provider.(TProv)
+	if !ok {
+		return cons, prov, errNotProvided
+	}
+
+	return srv, stt, nil
+}
 
 // InjectServiceWith - initialize service with given service inject functions.
 //
