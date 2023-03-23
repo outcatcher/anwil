@@ -103,18 +103,24 @@ type InjectFunc func(consumer, provider interface{}) error
 // Example
 //
 //	reqStorage, provStorage, err := services.ValidateArgInterfaces[RequiresStorage, WithStorage](serv, state)
-func ValidateArgInterfaces[TCons any, TProv any](consumer, provider any) (cons TCons, prov TProv, err error) {
-	srv, ok := consumer.(TCons)
+func ValidateArgInterfaces[TCons any, TProv any](consumer, provider any) (TCons, TProv, error) {
+	var (
+		cons TCons
+		prov TProv
+		ok   bool
+	)
+
+	cons, ok = consumer.(TCons)
 	if !ok {
 		return cons, prov, errNotNeeded
 	}
 
-	stt, ok := provider.(TProv)
+	prov, ok = provider.(TProv)
 	if !ok {
 		return cons, prov, errNotProvided
 	}
 
-	return srv, stt, nil
+	return cons, prov, nil
 }
 
 // InjectServiceWith - initialize service with given service inject functions.
