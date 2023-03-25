@@ -37,6 +37,11 @@ A full name or an alias of the user to be shown in UI.
 
 ### Example
 
+```shell
+curl -X POST http://localhost:8010/api/v1/wisher -d @new_user.json -H "content-type: application/json" 
+```
+
+**new_user.json**
 ```json
 {
   "username": "unique",
@@ -75,6 +80,14 @@ Authorizes user returning new token.
 
 ### Example
 
+```shell
+$ curl -X POST http://localhost:8010/api/v1/login -d @login_user.json -H "content-type: application/json"
+
+{"token":"eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhbndpbCIsImV4cCI6MTY4MjM3NjExOSwiaWF0IjoxNjc5Nzg0MTE5LCJ1c2VybmFtZSI6InVuaXF1ZSJ9.jzmRmvw9IuueTogPbzXHKprKZv-TAyGJIPHSYom8HTV6tqUKSp3q8Z6WHrz-l35jQB7bX35Ncm6x35QBuJf8Bg"}
+```
+
+**login_user.json**
+
 ```json
 {
   "username": "unique",
@@ -86,7 +99,7 @@ Authorizes user returning new token.
 
 Statuses:
 
-- `200`: User successfully created
+- `200`: Token successfully created
 - `400`: Request body invalid
 - `404`: User doesn't exist
 - `401`: Password invalid
