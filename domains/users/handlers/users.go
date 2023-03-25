@@ -11,7 +11,7 @@ import (
 type createUser struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
-	FullName string `json:"full_name" validate:"required"`
+	FullName string `json:"full_name"`
 }
 
 func handleUserRegister(usr schema.Service) gin.HandlerFunc {
@@ -26,7 +26,7 @@ func handleUserRegister(usr schema.Service) gin.HandlerFunc {
 		err := usr.SaveUser(ctx, users.User{
 			Username: req.Username,
 			Password: req.Password,
-			FullName: "",
+			FullName: req.FullName,
 		})
 		if err != nil {
 			_ = c.Error(err)

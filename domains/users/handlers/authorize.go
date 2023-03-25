@@ -11,7 +11,7 @@ import (
 type credentialsRequest struct {
 	// Username
 	Username string `json:"username" validate:"required"`
-	// SHA256 - HMAC encrypted password
+	// User password
 	Password string `json:"password" validate:"required"`
 }
 
