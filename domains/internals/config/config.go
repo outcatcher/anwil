@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/imdario/mergo"
@@ -20,12 +19,7 @@ import (
 
 const configFileCacheSize = 1 // now we have only one config
 
-type configFile struct {
-	modTime    time.Time // to check it there were changes since last load
-	fileConfig schema.Configuration
-}
-
-var configFileLRU, _ = lru.New[string, configFile](configFileCacheSize) // error is returned only on negative size
+var configFileLRU, _ = lru.New[string, schema.Configuration](configFileCacheSize) // error is returned only on negative size
 
 // LoadServerConfiguration loads server yaml configuration by given path and merges with defined env vars.
 //
@@ -36,6 +30,11 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("error getting absolute path from %s: %w", path, err)
+	}
+
+	value, ok := configFileLRU.Get(absPath)
+	if ok {
+		return &value, nil
 	}
 
 	file, err := os.Open(filepath.Clean(absPath))
@@ -52,27 +51,11 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 		}
 	}()
 
-	info, err := file.Stat()
-	if err != nil {
-		return nil, fmt.Errorf("error getting stat of configuration file %s: %w", absPath, err)
-	}
-
 	cfg := new(schema.Configuration)
 
-	value, ok := configFileLRU.Get(absPath)
-
-	if ok && info.ModTime() == value.modTime {
-		cfg = &value.fileConfig
-	} else {
-		err := yaml.NewDecoder(file).Decode(cfg)
-		if err != nil {
-			return nil, fmt.Errorf("error decoding configuration file: %w", err)
-		}
-
-		configFileLRU.Add(absPath, configFile{
-			modTime:    info.ModTime(),
-			fileConfig: *cfg,
-		})
+	err = yaml.NewDecoder(file).Decode(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding configuration file: %w", err)
 	}
 
 	fromEmv := new(schema.Configuration)
@@ -84,6 +67,8 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 	if err := mergo.Merge(cfg, fromEmv, mergo.WithOverride); err != nil {
 		return nil, fmt.Errorf("error merging configurations: %w", err)
 	}
+
+	configFileLRU.Add(absPath, *cfg)
 
 	return cfg, nil
 }
