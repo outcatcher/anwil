@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/core/services/schema"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/outcatcher/anwil/domains/internals/services"
+	"github.com/outcatcher/anwil/domains/core/services"
 )
 
 // WithStorage defines service or state having storage attached.

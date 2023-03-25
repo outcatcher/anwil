@@ -8,47 +8,34 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
-	"log/syslog"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/outcatcher/anwil/domains/api"
-	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/outcatcher/anwil/domains/core/logging"
 )
 
 const defaultTimeout = time.Minute
 
 func main() {
-	sysWriter, err := syslog.New(syslog.LOG_INFO, "anwil-api")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	sysLogger := log.New(sysWriter, "", log.LstdFlags)
+	logger := logging.GetDefaultLogger()
 
 	argConfigPath := flag.String("config", "", "Configuration path")
 	flag.Parse()
 
 	if *argConfigPath == "" {
-		sysLogger.Fatalf("please provide configuation path")
+		logger.Fatalf("please provide configuration path")
 	}
 
-	configPath, err := filepath.Abs(filepath.Clean(*argConfigPath))
-	if err != nil {
-		sysLogger.Fatal(err)
-	}
+	logger.Printf("using configuration at %s", *argConfigPath)
 
-	sysLogger.Printf("using configuration at %s", configPath)
+	ctx := logging.CtxWithLogger(context.Background(), logger)
 
-	ctx := logging.CtxWithLogger(context.Background(), sysLogger)
-
-	if err := exec(ctx, configPath); err != nil {
-		sysLogger.Fatal(err)
+	if err := exec(ctx, *argConfigPath); err != nil {
+		logger.Fatal(err)
 	}
 }
 

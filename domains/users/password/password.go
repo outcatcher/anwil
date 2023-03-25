@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
 )
 
 var errMissingPrivateKey = errors.New("missing encryption key")

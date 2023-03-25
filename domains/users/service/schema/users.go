@@ -6,7 +6,7 @@ package schema
 import (
 	"context"
 
-	"github.com/outcatcher/anwil/domains/internals/services/schema"
+	"github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/users/dto"
 )
 

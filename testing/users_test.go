@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	th "github.com/outcatcher/anwil/domains/internals/testhelpers"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/stretchr/testify/require"
 )
 

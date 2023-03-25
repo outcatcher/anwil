@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/outcatcher/anwil/domains/internals/password"
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	"github.com/outcatcher/anwil/domains/internals/token"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/password"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/outcatcher/anwil/domains/users/storage"
+	"github.com/outcatcher/anwil/domains/users/token"
 )
 
 // GetUser returns user data by username.

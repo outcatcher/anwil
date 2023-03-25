@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
 )
 
 type mock struct {

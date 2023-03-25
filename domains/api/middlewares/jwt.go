@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	"github.com/outcatcher/anwil/domains/internals/validation"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
