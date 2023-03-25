@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/internals/logging"
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	"github.com/outcatcher/anwil/domains/internals/validation"
+	"github.com/outcatcher/anwil/domains/core/logging"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/validation"
 )
 
 type responseError struct {

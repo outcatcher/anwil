@@ -9,11 +9,11 @@ import (
 	"fmt"
 	"log"
 
-	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
-	logSchema "github.com/outcatcher/anwil/domains/internals/logging/schema"
-	"github.com/outcatcher/anwil/domains/internals/services"
-	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
-	storageSchema "github.com/outcatcher/anwil/domains/internals/storage/schema"
+	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
+	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
+	"github.com/outcatcher/anwil/domains/core/services"
+	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
+	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )

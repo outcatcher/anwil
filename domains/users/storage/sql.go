@@ -9,8 +9,8 @@ import (
 	"errors"
 	"fmt"
 
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	storageSchema "github.com/outcatcher/anwil/domains/internals/storage/schema"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
 )
 
 // userStorage - storage of users.

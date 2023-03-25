@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/stretchr/testify/require"
 )
 

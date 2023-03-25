@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/outcatcher/anwil/domains/internals/config/schema"
+	"github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"

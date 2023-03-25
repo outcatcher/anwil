@@ -5,7 +5,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // use `postgres` driver
-	"github.com/outcatcher/anwil/domains/internals/config/schema"
+	"github.com/outcatcher/anwil/domains/core/config/schema"
 )
 
 const dbDriver = "postgres"

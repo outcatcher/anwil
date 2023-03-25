@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	svcSchema "github.com/outcatcher/anwil/domains/internals/services/schema"
+	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,7 +4,7 @@ WORKDIR /opt/build
 
 COPY . .
 
-RUN go build -trimpath -o ./anwil ./cmd/api/main.go
+RUN go build -trimpath -o ./anwil ./domains/api/cmd/server/main.go
 
 FROM alpine:3.17.2
 
@@ -20,7 +20,7 @@ HEALTHCHECK \
   CMD curl http://localhost:8010/api/v1/echo || exit 1
 
 COPY --from=builder /opt/build/anwil ./anwil
-COPY ./static ./static
+COPY static ./static
 COPY ./anwil-config.yaml ./config.yaml
 COPY ./.keys ./.keys
 

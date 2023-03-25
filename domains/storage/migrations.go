@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	config "github.com/outcatcher/anwil/domains/internals/config/schema"
+	config "github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/pressly/goose/v3"
 )
 

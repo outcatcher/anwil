@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/outcatcher/anwil/domains/internals/services"
+	"github.com/outcatcher/anwil/domains/core/services"
 )
 
 // WithLogger containing logger.

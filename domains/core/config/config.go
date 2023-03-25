@@ -11,8 +11,8 @@ import (
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/imdario/mergo"
-	"github.com/outcatcher/anwil/domains/internals/config/schema"
-	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/outcatcher/anwil/domains/core/config/schema"
+	"github.com/outcatcher/anwil/domains/core/logging"
 	"github.com/sethvargo/go-envconfig"
 	"gopkg.in/yaml.v3"
 )

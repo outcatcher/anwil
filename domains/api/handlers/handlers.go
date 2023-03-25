@@ -10,9 +10,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
-	configSchema "github.com/outcatcher/anwil/domains/internals/config/schema"
-	logSchema "github.com/outcatcher/anwil/domains/internals/logging/schema"
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
+	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
+	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )

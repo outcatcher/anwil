@@ -14,8 +14,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/outcatcher/anwil/domains/internals/logging"
-	"github.com/outcatcher/anwil/domains/internals/services"
+	"github.com/outcatcher/anwil/domains/core/logging"
+	"github.com/outcatcher/anwil/domains/core/services"
 )
 
 const encodedPrivateKeyLen = 128

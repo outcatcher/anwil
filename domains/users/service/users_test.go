@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/outcatcher/anwil/domains/internals/password"
-	services "github.com/outcatcher/anwil/domains/internals/services/schema"
-	th "github.com/outcatcher/anwil/domains/internals/testhelpers"
+	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/users/dto"
+	"github.com/outcatcher/anwil/domains/users/password"
 	"github.com/outcatcher/anwil/domains/users/storage"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
