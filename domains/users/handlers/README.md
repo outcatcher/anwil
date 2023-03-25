@@ -101,8 +101,8 @@ Statuses:
 
 - `200`: Token successfully created
 - `400`: Request body invalid
-- `404`: User doesn't exist
 - `401`: Password invalid
+- `404`: User doesn't exist
 
 ### Response Body
 
