@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/http"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -56,12 +55,7 @@ func (h *handlers) populate(funcs map[string]services.AddHandlersFunc) error {
 }
 
 func (h *handlers) populateCommon() {
-	h.baseGroup.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusFound, "/api/v1/swagger")
-	})
-	h.baseGroup.GET("/swagger", handleAPISpec)
 	h.baseGroup.GET("/echo", handleEcho)
-
 	h.secGroup.GET("/auth-echo", handleEcho)
 }
 
