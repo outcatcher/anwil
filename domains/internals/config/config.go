@@ -19,7 +19,8 @@ import (
 
 const configFileCacheSize = 1 // now we have only one config
 
-var configFileLRU, _ = lru.New[string, schema.Configuration](configFileCacheSize) // error is returned only on negative size
+// Error is returned only on negative size, so discarding it silently.
+var configFileLRU, _ = lru.New[string, schema.Configuration](configFileCacheSize)
 
 // LoadServerConfiguration loads server yaml configuration by given path and merges with defined env vars.
 //
@@ -32,12 +33,14 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 		return nil, fmt.Errorf("error getting absolute path from %s: %w", path, err)
 	}
 
+	absPath = filepath.Clean(absPath)
+
 	value, ok := configFileLRU.Get(absPath)
 	if ok {
 		return &value, nil
 	}
 
-	file, err := os.Open(filepath.Clean(absPath))
+	file, err := os.Open(absPath)
 	if err != nil {
 		return nil, fmt.Errorf("error opening configuration file %s: %w", absPath, err)
 	}
