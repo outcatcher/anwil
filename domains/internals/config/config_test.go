@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"gopkg.in/yaml.v3"
 )
 
 const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -64,7 +65,7 @@ func TestLoadServerConfiguration(t *testing.T) {
 		path := writeCfg(t, randomString("---", 120))
 
 		_, err := LoadServerConfiguration(ctx, path)
-		require.ErrorContains(t, err, "config decode error")
+		require.ErrorAs(t, err, new(*yaml.TypeError))
 	})
 
 	t.Run("Not existing file", func(t *testing.T) {

@@ -8,14 +8,30 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
-	"github.com/outcatcher/anwil/domains/internals/config/envyaml"
+	lru "github.com/hashicorp/golang-lru/v2"
+	"github.com/imdario/mergo"
 	"github.com/outcatcher/anwil/domains/internals/config/schema"
 	"github.com/outcatcher/anwil/domains/internals/logging"
+	"github.com/sethvargo/go-envconfig"
+	"gopkg.in/yaml.v3"
 )
 
-// LoadServerConfiguration loads server yaml configuration by given path.
+const configFileCacheSize = 1 // now we have only one config
+
+type configFile struct {
+	modTime    time.Time // to check it there were changes since last load
+	fileConfig schema.Configuration
+}
+
+var configFileLRU, _ = lru.New[string, configFile](configFileCacheSize) // error is returned only on negative size
+
+// LoadServerConfiguration loads server yaml configuration by given path and merges with defined env vars.
+//
 // It strictly validates yaml file contents, so will fail in case yaml structure is incorrect.
+//
+// File contents are hashed. Env vars are loaded each time function is called.
 func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configuration, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -36,10 +52,37 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 		}
 	}()
 
+	info, err := file.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("error getting stat of configuration file %s: %w", absPath, err)
+	}
+
 	cfg := new(schema.Configuration)
 
-	if err := envyaml.Decode(ctx, file, cfg); err != nil {
-		return nil, fmt.Errorf("config decode error: %w", err)
+	value, ok := configFileLRU.Get(absPath)
+
+	if ok && info.ModTime() == value.modTime {
+		cfg = &value.fileConfig
+	} else {
+		err := yaml.NewDecoder(file).Decode(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding configuration file: %w", err)
+		}
+
+		configFileLRU.Add(absPath, configFile{
+			modTime:    info.ModTime(),
+			fileConfig: *cfg,
+		})
+	}
+
+	fromEmv := new(schema.Configuration)
+
+	if err := envconfig.Process(ctx, fromEmv); err != nil {
+		return nil, fmt.Errorf("error loading config from env: %w", err)
+	}
+
+	if err := mergo.Merge(cfg, fromEmv, mergo.WithOverride); err != nil {
+		return nil, fmt.Errorf("error merging configurations: %w", err)
 	}
 
 	return cfg, nil
