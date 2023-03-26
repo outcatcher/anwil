@@ -134,7 +134,7 @@ func (s *UsersSuite) createTestUser(ctx context.Context) dto.User {
 
 	testUser := dto.User{
 		Username: th.RandomString("usr-", 5),
-		Password: th.RandomString("pwd-", 5),
+		Password: th.RandomString("pwd-", 20),
 		FullName: "Test User",
 	}
 

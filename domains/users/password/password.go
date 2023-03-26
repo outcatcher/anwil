@@ -66,7 +66,6 @@ const minEntropy = 50
 // CheckRequirements validates password strength requirements.
 func CheckRequirements(password string) error {
 	err := pwdValidator.Validate(password, minEntropy)
-
 	if err != nil {
 		return fmt.Errorf("%w: %w", validation.ErrValidationFailed, err)
 	}
