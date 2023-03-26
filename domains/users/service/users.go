@@ -31,6 +31,10 @@ func (u *users) GetUser(ctx context.Context, username string) (*dto.User, error)
 //
 // user.Password expected to be not encrypted.
 func (u *users) SaveUser(ctx context.Context, user dto.User) error {
+	if err := password.CheckRequirements(user.Password); err != nil {
+		return fmt.Errorf("error saving user: %w", err)
+	}
+
 	pwd, err := password.Encrypt(user.Password, u.privateKey)
 	if err != nil {
 		return fmt.Errorf("error encrypting new user password: %w", err)

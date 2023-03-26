@@ -45,6 +45,10 @@ func (s *AnwilSuite) TestUserCreate_400() {
 			"password":  16,
 			"full_name": 2032,
 		},
+		"too_simple_password": {
+			"username": th.RandomString("user", 5),
+			"password": "qwertyui123!",
+		},
 	}
 
 	for name, data := range cases {

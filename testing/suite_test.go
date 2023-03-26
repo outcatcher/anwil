@@ -27,6 +27,7 @@ import (
 	"github.com/outcatcher/anwil/domains/core/config"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/storage"
 	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
@@ -41,7 +42,10 @@ const (
 
 	debugUsername = "debug"
 	debugFullName = "Debug Wisher"
-	debugPassword = "debug"
+)
+
+var (
+	debugPassword = th.RandomString("pWd!", 15)
 )
 
 type mapBody map[string]interface{}
