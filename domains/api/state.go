@@ -41,6 +41,10 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	engine := gin.New()
 	engine.Use(gin.LoggerWithWriter(s.Logger().Writer()), gin.Recovery())
 
+	engine.HandleMethodNotAllowed = true
+	engine.RedirectFixedPath = true
+	engine.RemoveExtraSlash = true
+
 	// запросы не должны использовать родительский контекст
 	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
