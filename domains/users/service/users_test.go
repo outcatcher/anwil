@@ -114,12 +114,16 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 
 		expectedUser := storage.Wisher{
 			Username: th.RandomString("user", 10),
+			Password: th.RandomString("pwd", 20),
 		}
 
 		err := s.users.storage.InsertUser(ctx, expectedUser)
 		require.NoError(t, err)
 
-		err = s.users.SaveUser(ctx, dto.User{Username: expectedUser.Username})
+		err = s.users.SaveUser(ctx, dto.User{
+			Username: expectedUser.Username,
+			Password: th.RandomString("pwd", 20),
+		})
 		require.ErrorIs(t, err, services.ErrConflict)
 	})
 }
@@ -130,7 +134,7 @@ func (s *UsersSuite) createTestUser(ctx context.Context) dto.User {
 
 	testUser := dto.User{
 		Username: th.RandomString("usr-", 5),
-		Password: th.RandomString("pwd-", 5),
+		Password: th.RandomString("pwd-", 20),
 		FullName: "Test User",
 	}
 

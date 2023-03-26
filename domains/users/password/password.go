@@ -11,6 +11,8 @@ import (
 	"fmt"
 
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/validation"
+	pwdValidator "github.com/wagslane/go-password-validator"
 )
 
 var errMissingPrivateKey = errors.New("missing encryption key")
@@ -54,6 +56,18 @@ func Validate(input, encrypted string, key []byte) error {
 
 	if !hmac.Equal(macInput, macCompared) {
 		return fmt.Errorf("%w: invalid password", services.ErrUnauthorized)
+	}
+
+	return nil
+}
+
+const minEntropy = 50
+
+// CheckRequirements validates password strength requirements.
+func CheckRequirements(password string) error {
+	err := pwdValidator.Validate(password, minEntropy)
+	if err != nil {
+		return fmt.Errorf("%w: %w", validation.ErrValidationFailed, err)
 	}
 
 	return nil
