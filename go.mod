@@ -3,7 +3,7 @@ module github.com/outcatcher/anwil
 go 1.19
 
 require (
-	github.com/docker/docker v20.10.17+incompatible
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-playground/validator/v10 v10.11.2
