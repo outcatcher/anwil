@@ -36,8 +36,7 @@ func newHandlers(state handlersState, echo *echo.Echo, baseAPIPath string) *hand
 	h := &handlers{state: state}
 
 	h.baseGroup = echo.Group(baseAPIPath)
-
-	h.secGroup = h.baseGroup.Group("/", middlewares.JWTAuth(state))
+	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(state))
 
 	return h
 }

@@ -13,25 +13,28 @@ import (
 )
 
 // errToHTTPError returns status code for corresponding error.
-func errToHTTPError(err error) echo.HTTPError {
+func errToHTTPError(err error) *echo.HTTPError {
 	bindErr := new(echo.BindingError)
+	httpError := new(echo.HTTPError)
 
 	switch {
 	case err == nil:
-		return echo.HTTPError{Code: http.StatusOK}
+		return nil
+	case errors.As(err, &httpError):
+		return httpError
 	case errors.Is(err, services.ErrUnauthorized):
-		return echo.HTTPError{Code: http.StatusUnauthorized}
+		return &echo.HTTPError{Code: http.StatusUnauthorized}
 	case errors.Is(err, services.ErrForbidden):
-		return echo.HTTPError{Code: http.StatusForbidden}
+		return &echo.HTTPError{Code: http.StatusForbidden}
 	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
-		return echo.HTTPError{Code: http.StatusNotFound, Message: err.Error()}
+		return &echo.HTTPError{Code: http.StatusNotFound, Message: err.Error()}
 	case errors.Is(err, services.ErrConflict):
-		return echo.HTTPError{Code: http.StatusConflict, Message: err.Error()}
+		return &echo.HTTPError{Code: http.StatusConflict, Message: err.Error()}
 	case errors.Is(err, validation.ErrValidationFailed),
 		errors.As(err, &bindErr):
-		return echo.HTTPError{Code: http.StatusBadRequest, Message: err.Error()}
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: err.Error()}
 	default:
-		return echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
+		return &echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 }
 
@@ -44,12 +47,13 @@ func ConvertErrors(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// after handling
 		err := next(c)
+		if err == nil {
+			return nil
+		}
 
 		httpError := errToHTTPError(err)
 
 		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, err.Error())
-
-		c.Response().Committed = true // stop further request handling
 
 		if httpError.Message == nil {
 			return c.NoContent(httpError.Code)

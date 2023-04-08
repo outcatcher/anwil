@@ -3,6 +3,7 @@ package middlewares
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -20,6 +21,8 @@ const (
 var (
 	errBindingHeaders  = errors.New("error binding request headers")
 	errValidateHeaders = errors.New("error validating request header")
+
+	headerBinder = new(echo.DefaultBinder)
 )
 
 type reqAuth struct {
@@ -56,7 +59,11 @@ func JWTAuth(state schema.WithUsers) echo.MiddlewareFunc {
 // bindAndValidateHeader binds request body to structure,
 // validates it using `validate` tag and trows errors into gin context.
 func bindAndValidateHeader(c echo.Context, req any) error {
-	if err := c.Bind(req); err != nil {
+	authHeader := c.Request().Header.Get("Authorization")
+
+	log.Println(authHeader)
+
+	if err := headerBinder.BindHeaders(c, req); err != nil {
 		return fmt.Errorf("%w to %T", errBindingHeaders, req)
 	}
 

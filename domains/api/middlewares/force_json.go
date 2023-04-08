@@ -21,8 +21,6 @@ func RequireJSON(next echo.HandlerFunc) echo.HandlerFunc {
 				validation.ErrValidationFailed, echo.MIMEApplicationJSON,
 			)
 
-			c.Error(err)
-
 			return err
 		}
 
