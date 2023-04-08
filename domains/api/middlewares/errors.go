@@ -47,7 +47,7 @@ func ConvertErrors(next echo.HandlerFunc) echo.HandlerFunc {
 
 		httpError := errToHTTPError(err)
 
-		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, httpError.Error())
+		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, err.Error())
 
 		c.Response().Committed = true // stop further request handling
 

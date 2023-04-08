@@ -8,8 +8,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
+	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +37,7 @@ func okResponse(c echo.Context) error {
 func TestRequireJSONMissingHeader(t *testing.T) {
 	t.Parallel()
 
-	cases := []string{http.MethodPost}
+	cases := []string{http.MethodPut, http.MethodPost}
 
 	for _, method := range cases {
 		method := method
@@ -57,10 +57,7 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 			err := RequireJSON(okResponse)(echoCtx)
 			require.Error(t, err)
 
-			result := rec.Result()
-			require.NotNil(t, result)
-
-			require.Equal(t, http.StatusBadRequest, result.StatusCode)
+			require.ErrorIs(t, err, validation.ErrValidationFailed)
 		})
 	}
 }
@@ -109,7 +106,7 @@ func TestRequireJSONOk(t *testing.T) {
 			recorder := closingRecorder(t)
 
 			header := make(http.Header)
-			header.Set("content-type", gin.MIMEJSON)
+			header.Set("content-type", echo.MIMEApplicationJSON)
 
 			request := &http.Request{
 				Method: method,

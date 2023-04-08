@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
@@ -20,8 +19,6 @@ var errForTest = errors.New("magic error text")
 
 func TestConvertErrors(t *testing.T) {
 	t.Parallel()
-
-	gin.SetMode(gin.ReleaseMode)
 
 	cases := []struct {
 		inputErr     error

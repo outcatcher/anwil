@@ -22,7 +22,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/api"
 	"github.com/outcatcher/anwil/domains/core/config"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
@@ -87,7 +87,7 @@ func (s *AnwilSuite) requestJSON(
 		headers = make(map[string]string)
 	}
 
-	headers["content-type"] = gin.MIMEJSON
+	headers["content-type"] = echo.MIMEApplicationJSON
 
 	return s.request(method, url, reader, headers)
 }
@@ -123,8 +123,6 @@ func (s *AnwilSuite) SetupSuite() {
 		// don't log http requests on server side
 		ctx = logging.CtxWithLogger(ctx, log.New(io.Discard, "", log.LstdFlags))
 	}
-
-	gin.SetMode(gin.ReleaseMode) // no need for request logs
 
 	configPath := "./fixtures/test_config.yaml"
 

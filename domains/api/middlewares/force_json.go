@@ -1,15 +1,13 @@
 package middlewares
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/outcatcher/anwil/domains/core/validation"
 )
-
-var errInvalidMIMEType = errors.New("invalid MIME type")
 
 // RequireJSON forces usage of application/json content type in POST and PUT request to servers.
 func RequireJSON(next echo.HandlerFunc) echo.HandlerFunc {
@@ -18,7 +16,10 @@ func RequireJSON(next echo.HandlerFunc) echo.HandlerFunc {
 
 		if (c.Request().Method == http.MethodPost || c.Request().Method == http.MethodPut) &&
 			!strings.HasPrefix(contentType, echo.MIMEApplicationJSON) {
-			err := fmt.Errorf("%w, expected %s", errInvalidMIMEType, echo.MIMEApplicationJSON)
+			err := fmt.Errorf(
+				"%w: invalid MIME type, %s expected",
+				validation.ErrValidationFailed, echo.MIMEApplicationJSON,
+			)
 
 			c.Error(err)
 
