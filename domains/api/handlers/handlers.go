@@ -5,9 +5,8 @@ package handlers
 
 import (
 	"fmt"
-	"path/filepath"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
@@ -16,9 +15,8 @@ import (
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
-func handleStatic(engine *gin.Engine, basePath string) {
+func handleStatic(engine *echo.Echo, basePath string) {
 	engine.Static("/static", basePath)
-	engine.LoadHTMLGlob(filepath.Join(basePath, "*"))
 }
 
 type handlersState interface {
@@ -30,14 +28,14 @@ type handlersState interface {
 type handlers struct {
 	state handlersState
 
-	baseGroup *gin.RouterGroup
-	secGroup  *gin.RouterGroup
+	baseGroup *echo.Group
+	secGroup  *echo.Group
 }
 
-func newHandlers(state handlersState, engine *gin.Engine, baseAPIPath string) *handlers {
+func newHandlers(state handlersState, echo *echo.Echo, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
-	h.baseGroup = engine.Group(baseAPIPath, middlewares.ConvertErrors, middlewares.RequireJSON)
+	h.baseGroup = echo.Group(baseAPIPath)
 
 	h.secGroup = h.baseGroup.Group("/", middlewares.JWTAuth(state))
 
@@ -60,7 +58,7 @@ func (h *handlers) populateCommon() {
 }
 
 // PopulateEndpoints populates endpoints for API.
-func PopulateEndpoints(engine *gin.Engine, state handlersState) error {
+func PopulateEndpoints(engine *echo.Echo, state handlersState) error {
 	handleStatic(engine, state.Config().API.StaticPath)
 
 	apiHandlers := newHandlers(state, engine, "/api/v1")

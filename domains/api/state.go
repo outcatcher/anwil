@@ -9,8 +9,10 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/outcatcher/anwil/domains/api/handlers"
+	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
@@ -38,12 +40,14 @@ type State struct {
 func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
-	engine := gin.New()
-	engine.Use(gin.LoggerWithWriter(s.Logger().Writer()), gin.Recovery())
-
-	engine.HandleMethodNotAllowed = true
-	engine.RedirectFixedPath = true
-	engine.RemoveExtraSlash = true
+	engine := echo.New()
+	engine.Use(
+		middleware.LoggerWithConfig(middleware.LoggerConfig{Output: s.Logger().Writer()}),
+		middleware.Recover(),
+		middleware.RemoveTrailingSlash(),
+		middlewares.RequireJSON,
+		middlewares.ConvertErrors,
+	)
 
 	// запросы не должны использовать родительский контекст
 	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck

@@ -3,70 +3,58 @@ package middlewares
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/core/validation"
 )
 
-type responseError struct {
-	Code   int    `json:"-"`
-	Reason string `json:"reason,omitempty"`
-}
-
-// statusCodeFromError returns status code for corresponding error.
-func statusCodeFromError(err error) responseError {
-	ginErr := new(gin.Error)
+// errToHTTPError returns status code for corresponding error.
+func errToHTTPError(err error) echo.HTTPError {
+	bindErr := new(echo.BindingError)
 
 	switch {
 	case err == nil:
-		return responseError{Code: http.StatusOK}
+		return echo.HTTPError{Code: http.StatusOK}
 	case errors.Is(err, services.ErrUnauthorized):
-		return responseError{Code: http.StatusUnauthorized}
+		return echo.HTTPError{Code: http.StatusUnauthorized}
 	case errors.Is(err, services.ErrForbidden):
-		return responseError{Code: http.StatusForbidden}
+		return echo.HTTPError{Code: http.StatusForbidden}
 	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
-		return responseError{Code: http.StatusNotFound, Reason: err.Error()}
+		return echo.HTTPError{Code: http.StatusNotFound, Message: err.Error()}
 	case errors.Is(err, services.ErrConflict):
-		return responseError{Code: http.StatusConflict, Reason: err.Error()}
+		return echo.HTTPError{Code: http.StatusConflict, Message: err.Error()}
 	case errors.Is(err, validation.ErrValidationFailed),
-		errors.As(err, &ginErr) && ginErr.IsType(gin.ErrorTypeBind):
-		return responseError{Code: http.StatusBadRequest, Reason: err.Error()}
+		errors.As(err, &bindErr):
+		return echo.HTTPError{Code: http.StatusBadRequest, Message: err.Error()}
 	default:
-		return responseError{Code: http.StatusInternalServerError, Reason: err.Error()}
+		return echo.HTTPError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 }
 
 // ConvertErrors converts response error to valid status code.
-func ConvertErrors(c *gin.Context) {
-	log := logging.LoggerFromCtx(c.Request.Context())
+//
+// TODO: move to c.HTTPErrorHandler instead middleware.
+func ConvertErrors(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		log := logging.LoggerFromCtx(c.Request().Context())
 
-	// no processing of request
-	c.Next()
+		// after handling
+		err := next(c)
 
-	if len(c.Errors) == 0 {
-		return
-	}
+		httpError := errToHTTPError(err)
 
-	err := c.Errors[len(c.Errors)-1] // last error defines the code
-	statusCode := statusCodeFromError(err.Err)
+		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, httpError.Error())
 
-	errLines := make([]string, len(c.Errors))
-	// log all other errors
-	for i, err := range c.Errors {
-		errLines[i] = err.Error()
-	}
+		c.Response().Committed = true // stop further request handling
 
-	log.Printf("Error performing %s  %s:\n\t%s",
-		c.Request.Method, c.Request.URL, strings.Join(errLines, "\n\t"),
-	)
+		if httpError.Message == nil {
+			return c.NoContent(httpError.Code)
+		}
 
-	if statusCode.Reason == "" {
-		c.AbortWithStatus(statusCode.Code)
-	} else {
-		c.AbortWithStatusJSON(statusCode.Code, statusCode)
+		return c.String(httpError.Code, fmt.Sprint(httpError.Message))
 	}
 }

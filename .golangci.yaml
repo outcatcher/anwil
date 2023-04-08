@@ -33,6 +33,9 @@ linters-settings:
       rules:
         json: snake
         yaml: camel
+  wrapcheck:
+    ignorePackageGlobs:
+      - 'github.com/labstack/echo/v4'
   revive:
     rules:
       - name: deep-exit

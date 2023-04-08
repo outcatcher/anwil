@@ -5,7 +5,7 @@ api:
     staticPath: ./static
 
 db:
-    host: postgres # assumes app is started in with a docker compose
+    host: localhost # assumes app is started in with a docker compose
     port: 6634
     username: anwil
     databaseName: postgres

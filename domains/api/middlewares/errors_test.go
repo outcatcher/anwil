@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/stretchr/testify/require"
@@ -33,17 +34,17 @@ func TestConvertErrors(t *testing.T) {
 		{
 			errForTest,
 			http.StatusInternalServerError,
-			fmt.Sprintf(`{"reason":"%s"}`, errForTest),
+			errForTest.Error(),
 		},
 		{
 			services.ErrConflict,
 			http.StatusInternalServerError,
-			fmt.Sprintf(`{"reason":"%s"}`, services.ErrConflict),
+			services.ErrConflict.Error(),
 		},
 		{
 			services.ErrNotFound,
 			http.StatusNotFound,
-			fmt.Sprintf(`{"reason":"%s"}`, services.ErrNotFound),
+			services.ErrNotFound.Error(),
 		},
 	}
 
@@ -59,20 +60,18 @@ func TestConvertErrors(t *testing.T) {
 			logger := log.New(&logWriter, "", 0)
 			ctx := logging.CtxWithLogger(context.Background(), logger)
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/err/example", nil)
 			require.NoError(t, err)
 
-			ginCtx, _ := gin.CreateTestContext(recorder)
-			ginCtx.Errors = append(ginCtx.Errors, &gin.Error{Err: data.inputErr})
+			echoCtx := echo.New().NewContext(req, recorder)
 
-			ginCtx.Request = req
-
-			ConvertErrors(ginCtx)
+			err = ConvertErrors(func(_ echo.Context) error {
+				return data.inputErr
+			})(echoCtx)
+			require.NoError(t, err)
 
 			require.Contains(t, logWriter.String(), data.inputErr.Error())
-			require.EqualValues(t, recorder.Body.String(), data.expectedBody)
-
-			require.True(t, ginCtx.IsAborted())
+			require.EqualValues(t, data.expectedBody, recorder.Body.String())
 		})
 	}
 }
