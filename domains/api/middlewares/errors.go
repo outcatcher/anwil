@@ -4,69 +4,60 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strings"
 
-	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/core/logging"
+	"github.com/gofiber/fiber/v2"
+	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/core/validation"
 )
 
-type responseError struct {
-	Code   int    `json:"-"`
-	Reason string `json:"reason,omitempty"`
-}
-
 // statusCodeFromError returns status code for corresponding error.
-func statusCodeFromError(err error) responseError {
-	ginErr := new(gin.Error)
+func statusCodeFromError(err error) *fiber.Error {
+	fiberErr := new(fiber.Error)
 
 	switch {
 	case err == nil:
-		return responseError{Code: http.StatusOK}
+		return nil
+	case errors.As(err, &fiberErr):
+		return fiberErr
 	case errors.Is(err, services.ErrUnauthorized):
-		return responseError{Code: http.StatusUnauthorized}
+		return fiber.ErrUnauthorized
 	case errors.Is(err, services.ErrForbidden):
-		return responseError{Code: http.StatusForbidden}
+		return fiber.ErrForbidden
 	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
-		return responseError{Code: http.StatusNotFound, Reason: err.Error()}
+		return &fiber.Error{Code: http.StatusNotFound, Message: err.Error()}
 	case errors.Is(err, services.ErrConflict):
-		return responseError{Code: http.StatusConflict, Reason: err.Error()}
-	case errors.Is(err, validation.ErrValidationFailed),
-		errors.As(err, &ginErr) && ginErr.IsType(gin.ErrorTypeBind):
-		return responseError{Code: http.StatusBadRequest, Reason: err.Error()}
+		return &fiber.Error{Code: http.StatusConflict, Message: err.Error()}
+	case errors.Is(err, validation.ErrValidationFailed):
+		return &fiber.Error{Code: http.StatusBadRequest, Message: err.Error()}
 	default:
-		return responseError{Code: http.StatusInternalServerError, Reason: err.Error()}
+		return &fiber.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 }
 
 // ConvertErrors converts response error to valid status code.
-func ConvertErrors(c *gin.Context) {
-	log := logging.LoggerFromCtx(c.Request.Context())
+//
+// TODO: make it a fiber.ErrorHandler instead of middleware.
+func ConvertErrors(state logSchema.WithLogger) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		log := state.Logger()
 
-	// no processing of request
-	c.Next()
+		// no processing of request
+		err := c.Next()
+		if err == nil {
+			return nil
+		}
 
-	if len(c.Errors) == 0 {
-		return
-	}
+		statusCode := statusCodeFromError(err)
 
-	err := c.Errors[len(c.Errors)-1] // last error defines the code
-	statusCode := statusCodeFromError(err.Err)
+		log.Printf("Error performing %s %s: %s",
+			c.Method(), string(c.Request().RequestURI()), err.Error(),
+		)
 
-	errLines := make([]string, len(c.Errors))
-	// log all other errors
-	for i, err := range c.Errors {
-		errLines[i] = err.Error()
-	}
+		if statusCode.Message != "" {
+			_ = c.SendString(statusCode.Message)
+		}
 
-	log.Printf("Error performing %s  %s:\n\t%s",
-		c.Request.Method, c.Request.URL, strings.Join(errLines, "\n\t"),
-	)
-
-	if statusCode.Reason == "" {
-		c.AbortWithStatus(statusCode.Code)
-	} else {
-		c.AbortWithStatusJSON(statusCode.Code, statusCode)
+		return c.SendStatus(statusCode.Code)
 	}
 }

@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
-func handleEcho(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
+func handleEcho(c *fiber.Ctx) error {
+	return c.SendString("OK")
 }

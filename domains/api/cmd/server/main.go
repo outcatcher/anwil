@@ -48,7 +48,7 @@ func exec(ctx context.Context, configPath string) error {
 		return fmt.Errorf("error initializing API: %w", err)
 	}
 
-	server, err := state.Server(ctx)
+	server, err := state.Server()
 	if err != nil {
 		return fmt.Errorf("error serving HTTP: %w", err)
 	}
@@ -63,13 +63,24 @@ func exec(ctx context.Context, configPath string) error {
 
 		logger.Printf("received signal: %+v", sig)
 
-		err := server.Shutdown(shutdownCtx)
+		err := server.ShutdownWithContext(shutdownCtx)
 		if err != nil {
 			logger.Printf("server shutdown faced error: %s", err)
 		}
 	}()
 
-	err = server.ListenAndServe()
+	cfg := state.Config()
+
+	addr := fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port)
+
+	loggedAddr := addr
+	if cfg.API.Host == "" {
+		loggedAddr = fmt.Sprintf("localhost:%d", cfg.API.Port)
+	}
+
+	state.Logger().Printf("Anwil API server started at http://%s", loggedAddr)
+
+	err = server.ListenAndServe(addr)
 	if !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("server stopped with error: %w", err)
 	}

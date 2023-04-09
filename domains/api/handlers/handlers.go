@@ -5,9 +5,8 @@ package handlers
 
 import (
 	"fmt"
-	"path/filepath"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
@@ -16,9 +15,8 @@ import (
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
-func handleStatic(engine *gin.Engine, basePath string) {
+func handleStatic(engine *fiber.App, basePath string) {
 	engine.Static("/static", basePath)
-	engine.LoadHTMLGlob(filepath.Join(basePath, "*"))
 }
 
 type handlersState interface {
@@ -30,16 +28,16 @@ type handlersState interface {
 type handlers struct {
 	state handlersState
 
-	baseGroup *gin.RouterGroup
-	secGroup  *gin.RouterGroup
+	baseGroup fiber.Router
+	secGroup  fiber.Router
 }
 
-func newHandlers(state handlersState, engine *gin.Engine, baseAPIPath string) *handlers {
+func newHandlers(state handlersState, engine *fiber.App, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
-	h.baseGroup = engine.Group(baseAPIPath, middlewares.ConvertErrors, middlewares.RequireJSON)
+	h.baseGroup = engine.Group(baseAPIPath, middlewares.ConvertErrors(state), middlewares.RequireJSON)
 
-	h.secGroup = h.baseGroup.Group("/", middlewares.JWTAuth(state))
+	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(state))
 
 	return h
 }
@@ -55,12 +53,12 @@ func (h *handlers) populate(funcs map[string]services.AddHandlersFunc) error {
 }
 
 func (h *handlers) populateCommon() {
-	h.baseGroup.GET("/echo", handleEcho)
-	h.secGroup.GET("/auth-echo", handleEcho)
+	h.baseGroup.Get("/echo", handleEcho)
+	h.secGroup.Get("/auth-echo", handleEcho)
 }
 
 // PopulateEndpoints populates endpoints for API.
-func PopulateEndpoints(engine *gin.Engine, state handlersState) error {
+func PopulateEndpoints(engine *fiber.App, state handlersState) error {
 	handleStatic(engine, state.Config().API.StaticPath)
 
 	apiHandlers := newHandlers(state, engine, "/api/v1")

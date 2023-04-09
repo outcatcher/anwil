@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	users "github.com/outcatcher/anwil/domains/users/dto"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
@@ -19,12 +20,12 @@ type jwtResponse struct {
 	Token string `json:"token"`
 }
 
-func handleAuthorize(usr schema.Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func handleAuthorize(usr schema.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		req := new(credentialsRequest)
 
 		if err := bindAndValidateJSON(c, req); err != nil {
-			return
+			return fmt.Errorf("error authorizing user: %w", err)
 		}
 
 		user := users.User{

@@ -26,7 +26,7 @@ var configFileLRU, _ = lru.New[string, schema.Configuration](configFileCacheSize
 //
 // It strictly validates yaml file contents, so will fail in case yaml structure is incorrect.
 //
-// File contents are hashed. Env vars are loaded each time function is called.
+// Loaded configurations are hashed.
 func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configuration, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {

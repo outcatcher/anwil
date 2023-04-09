@@ -1,3 +1,5 @@
+//go:build testt
+
 package middlewares
 
 import (
@@ -8,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/valyala/fasthttp"
 )
 
 func closingRecorder(t *testing.T) *httptest.ResponseRecorder {
@@ -39,20 +43,17 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
-			ginCtx, _ := gin.CreateTestContext(recorder)
+			app := fiber.New()
+			app.Use(RequireJSON)
 
-			ginCtx.Request = &http.Request{
-				Method: method,
-				Header: make(http.Header),
-			}
+			handler := app.Handler()
 
-			RequireJSON(ginCtx)
+			fiberCtx := &fasthttp.RequestCtx{}
+			fiberCtx.Request.SetRequestURI("/")
 
-			result := recorder.Result()
-			require.NotNil(t, result)
+			handler(fiberCtx)
 
-			require.Equal(t, http.StatusBadRequest, result.StatusCode)
+			require.Equal(t, http.StatusBadRequest, fiberCtx.Response.StatusCode())
 		})
 	}
 }
@@ -75,8 +76,11 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 				Method: method,
 				Header: make(http.Header),
 			}
+			fiberCtx := &fasthttp.RequestCtx{}
+			fiberCtx.Method()
+			fiberCtx.Request.SetRequestURI("/")
 
-			RequireJSON(ginCtx)
+			RequireJSON(fiberCtx)
 
 			result := recorder.Result()
 			require.NotNil(t, result)

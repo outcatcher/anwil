@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	users "github.com/outcatcher/anwil/domains/users/dto"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
@@ -14,13 +15,13 @@ type createUser struct {
 	FullName string `json:"full_name"`
 }
 
-func handleUserRegister(usr schema.Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ctx := c.Request.Context()
+func handleUserRegister(usr schema.Service) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
 		req := new(createUser)
 
 		if err := bindAndValidateJSON(c, req); err != nil {
-			return
+			return fmt.Errorf("error registering user: %w", err)
 		}
 
 		err := usr.SaveUser(ctx, users.User{
@@ -29,11 +30,9 @@ func handleUserRegister(usr schema.Service) gin.HandlerFunc {
 			FullName: req.FullName,
 		})
 		if err != nil {
-			_ = c.Error(err)
-
-			return
+			return fmt.Errorf("error registering user: %w", err)
 		}
 
-		c.AbortWithStatus(http.StatusCreated)
+		return c.SendStatus(http.StatusCreated)
 	}
 }

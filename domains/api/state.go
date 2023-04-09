@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net"
-	"net/http"
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	recov "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/outcatcher/anwil/domains/api/handlers"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
@@ -20,6 +20,7 @@ import (
 	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
 	users "github.com/outcatcher/anwil/domains/users/service"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
+	"github.com/valyala/fasthttp"
 )
 
 const defaultTimeout = time.Minute
@@ -35,37 +36,27 @@ type State struct {
 }
 
 // Server creates new API server instance.
-func (s *State) Server(ctx context.Context) (*http.Server, error) {
-	cfg := s.Config()
+func (s *State) Server() (*fasthttp.Server, error) {
+	app := fiber.New(fiber.Config{
+		StrictRouting:     false,
+		CaseSensitive:     false,
+		PassLocalsToViews: false,
+		ReadTimeout:       defaultTimeout,
+		WriteTimeout:      defaultTimeout,
+		IdleTimeout:       defaultTimeout,
+		AppName:           "anwil",
+	})
 
-	engine := gin.New()
-	engine.Use(gin.LoggerWithWriter(s.Logger().Writer()), gin.Recovery())
+	app.Use(
+		logger.New(logger.Config{Output: s.Logger().Writer()}),
+		recov.New(recov.Config{EnableStackTrace: true}),
+	)
 
-	engine.HandleMethodNotAllowed = true
-	engine.RedirectFixedPath = true
-	engine.RemoveExtraSlash = true
-
-	// запросы не должны использовать родительский контекст
-	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck
+	if err := handlers.PopulateEndpoints(app, s); err != nil { //nolint:contextcheck
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
 	}
 
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port),
-		Handler:           engine,
-		ReadHeaderTimeout: defaultTimeout,
-		BaseContext:       func(_ net.Listener) context.Context { return ctx },
-	}
-
-	loggedAddr := server.Addr
-
-	if cfg.API.Host == "" {
-		loggedAddr = fmt.Sprintf("localhost:%d", cfg.API.Port)
-	}
-
-	s.Logger().Printf("Anwil API server started at http://%s", loggedAddr)
-
-	return server, nil
+	return app.Server(), nil
 }
 
 // WithServices uses selected services.

@@ -2,20 +2,35 @@ package middlewares
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/outcatcher/anwil/domains/core/logging"
+	"github.com/gofiber/fiber/v2"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/stretchr/testify/require"
 )
 
+const defaultTimeoutMs = 100
+
 var errForTest = errors.New("magic error text")
+
+type withLogger struct {
+	l *log.Logger
+}
+
+func (w *withLogger) Logger() *log.Logger {
+	return w.l
+}
+
+func newLoggerState(output io.Writer) *withLogger {
+	return &withLogger{log.New(output, "", log.LstdFlags)}
+}
 
 func TestConvertErrors(t *testing.T) {
 	t.Parallel()
@@ -27,23 +42,23 @@ func TestConvertErrors(t *testing.T) {
 		expectedCode int
 		expectedBody string
 	}{
-		{services.ErrUnauthorized, http.StatusUnauthorized, ""},
-		{services.ErrForbidden, http.StatusForbidden, ""},
+		{services.ErrUnauthorized, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized)},
+		{services.ErrForbidden, http.StatusForbidden, http.StatusText(http.StatusForbidden)},
 
 		{
 			errForTest,
 			http.StatusInternalServerError,
-			fmt.Sprintf(`{"reason":"%s"}`, errForTest),
+			errForTest.Error(),
 		},
 		{
 			services.ErrConflict,
-			http.StatusInternalServerError,
-			fmt.Sprintf(`{"reason":"%s"}`, services.ErrConflict),
+			http.StatusConflict,
+			services.ErrConflict.Error(),
 		},
 		{
 			services.ErrNotFound,
 			http.StatusNotFound,
-			fmt.Sprintf(`{"reason":"%s"}`, services.ErrNotFound),
+			services.ErrNotFound.Error(),
 		},
 	}
 
@@ -53,26 +68,27 @@ func TestConvertErrors(t *testing.T) {
 		t.Run(fmt.Sprint(data.expectedCode), func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
+			logWriter := new(bytes.Buffer)
+			state := newLoggerState(logWriter)
 
-			logWriter := bytes.Buffer{}
-			logger := log.New(&logWriter, "", 0)
-			ctx := logging.CtxWithLogger(context.Background(), logger)
+			app := fiber.New()
+			app.Use(ConvertErrors(state))
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "", nil)
+			app.Get("/", func(c *fiber.Ctx) error {
+				return data.inputErr
+			})
+
+			resp, err := app.Test(httptest.NewRequest(fiber.MethodGet, "/", nil), defaultTimeoutMs)
 			require.NoError(t, err)
 
-			ginCtx, _ := gin.CreateTestContext(recorder)
-			ginCtx.Errors = append(ginCtx.Errors, &gin.Error{Err: data.inputErr})
+			require.EqualValues(t, data.expectedCode, resp.StatusCode)
 
-			ginCtx.Request = req
+			respBody, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
 
-			ConvertErrors(ginCtx)
+			require.EqualValues(t, data.expectedBody, string(respBody))
 
 			require.Contains(t, logWriter.String(), data.inputErr.Error())
-			require.EqualValues(t, recorder.Body.String(), data.expectedBody)
-
-			require.True(t, ginCtx.IsAborted())
 		})
 	}
 }

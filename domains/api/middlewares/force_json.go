@@ -1,22 +1,29 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/outcatcher/anwil/domains/core/validation"
 )
 
+const applicationJSON = "application/json"
+
 // RequireJSON forces usage of application/json content type in POST and PUT request to servers.
-func RequireJSON(c *gin.Context) {
-	typ := c.ContentType()
+func RequireJSON(c *fiber.Ctx) error {
+	typ := string(c.Request().Header.ContentType())
 
-	if (c.Request.Method == http.MethodPost || c.Request.Method == http.MethodPut) &&
-		typ != gin.MIMEJSON {
-		c.String(http.StatusBadRequest, "invalid MIME type, expected %s", gin.MIMEJSON)
-		c.Abort()
+	if (c.Method() == http.MethodPost || c.Method() == http.MethodPut) &&
+		!strings.HasPrefix(typ, applicationJSON) {
+		err := fmt.Errorf(
+			"%w: invalid MIME type, %s expected",
+			validation.ErrValidationFailed, applicationJSON,
+		)
 
-		return
+		return err
 	}
 
-	c.Status(http.StatusOK) // temporary status
+	return nil
 }
