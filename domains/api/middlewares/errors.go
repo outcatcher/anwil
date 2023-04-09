@@ -23,9 +23,9 @@ func errToHTTPError(err error) *echo.HTTPError {
 	case errors.As(err, &httpError):
 		return httpError
 	case errors.Is(err, services.ErrUnauthorized):
-		return &echo.HTTPError{Code: http.StatusUnauthorized}
+		return echo.ErrUnauthorized
 	case errors.Is(err, services.ErrForbidden):
-		return &echo.HTTPError{Code: http.StatusForbidden}
+		return echo.ErrForbidden
 	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
 		return &echo.HTTPError{Code: http.StatusNotFound, Message: err.Error()}
 	case errors.Is(err, services.ErrConflict):
