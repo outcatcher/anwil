@@ -25,9 +25,16 @@ func TestConvertErrors(t *testing.T) {
 		expectedCode int
 		expectedBody string
 	}{
-		{services.ErrUnauthorized, http.StatusUnauthorized, ""},
-		{services.ErrForbidden, http.StatusForbidden, ""},
-
+		{
+			services.ErrUnauthorized,
+			http.StatusUnauthorized,
+			http.StatusText(http.StatusUnauthorized),
+		},
+		{
+			services.ErrForbidden,
+			http.StatusForbidden,
+			http.StatusText(http.StatusForbidden),
+		},
 		{
 			errForTest,
 			http.StatusInternalServerError,
@@ -35,7 +42,7 @@ func TestConvertErrors(t *testing.T) {
 		},
 		{
 			services.ErrConflict,
-			http.StatusInternalServerError,
+			http.StatusConflict,
 			services.ErrConflict.Error(),
 		},
 		{
