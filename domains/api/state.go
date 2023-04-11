@@ -52,7 +52,7 @@ func (s *State) App() (*fiber.App, error) {
 		recov.New(recov.Config{EnableStackTrace: true}),
 	)
 
-	if err := handlers.PopulateEndpoints(app, s); err != nil { //nolint:contextcheck
+	if err := handlers.PopulateEndpoints(app, s); err != nil {
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
 	}
 

@@ -38,7 +38,7 @@ func handleAuthorize(usr schema.Service) fiber.Handler {
 			return fmt.Errorf("error authorizing user: %w", err)
 		}
 
-		_ = c.SendStatus(http.StatusOK)
+		_ = c.Status(http.StatusOK)
 
 		return c.JSON(jwtResponse{Token: tok})
 	}

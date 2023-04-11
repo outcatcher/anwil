@@ -31,7 +31,7 @@ func newLoggerState(output io.Writer) *withLogger {
 	return &withLogger{log.New(output, "", log.LstdFlags)}
 }
 
-func TestConvertErrors(t *testing.T) {
+func TestConvertErrors(t *testing.T) { //nolint:funlen
 	t.Parallel()
 
 	cases := []struct {

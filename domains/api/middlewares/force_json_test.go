@@ -1,9 +1,7 @@
 package middlewares
 
 import (
-	"bytes"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -11,23 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
-
-func closingRecorder(t *testing.T) *httptest.ResponseRecorder {
-	t.Helper()
-
-	recorder := &httptest.ResponseRecorder{Body: new(bytes.Buffer)}
-
-	t.Cleanup(func() {
-		result := recorder.Result()
-		if result == nil {
-			return
-		}
-
-		_ = result.Body.Close()
-	})
-
-	return recorder
-}
 
 func TestRequireJSONMissingHeader(t *testing.T) {
 	t.Parallel()

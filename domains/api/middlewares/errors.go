@@ -54,10 +54,12 @@ func ConvertErrors(state logSchema.WithLogger) fiber.Handler {
 			c.Method(), string(c.Request().RequestURI()), err.Error(),
 		)
 
+		c.Status(statusCode.Code)
+
 		if statusCode.Message != "" {
-			_ = c.SendString(statusCode.Message)
+			return c.SendString(statusCode.Message)
 		}
 
-		return c.SendStatus(statusCode.Code)
+		return nil
 	}
 }
