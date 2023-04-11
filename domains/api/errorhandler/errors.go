@@ -1,3 +1,6 @@
+/*
+Package errorhandler contains handler for handler-produced errors
+*/
 package errorhandler
 
 import (
