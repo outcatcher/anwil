@@ -47,7 +47,7 @@ func JWTAuth(state schema.WithUsers) fiber.Handler {
 
 		c.Set(contextKeyUsername, claims.Username)
 
-		return nil
+		return c.Next()
 	}
 }
 

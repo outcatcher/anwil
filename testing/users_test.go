@@ -3,6 +3,7 @@
 package testing
 
 import (
+	"io"
 	"net/http"
 	"testing"
 
@@ -30,7 +31,10 @@ func (s *AnwilSuite) TestUserCreate_200() {
 		nil,
 	)
 
-	require.EqualValues(t, http.StatusCreated, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.EqualValues(t, http.StatusCreated, resp.StatusCode, body)
 }
 
 func (s *AnwilSuite) TestUserCreate_400() {

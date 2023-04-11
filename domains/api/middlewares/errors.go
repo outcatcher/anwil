@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -14,12 +15,11 @@ import (
 // statusCodeFromError returns status code for corresponding error.
 func statusCodeFromError(err error) *fiber.Error {
 	fiberErr := new(fiber.Error)
+	unmarshalErr := new(json.UnmarshalTypeError)
 
 	switch {
 	case err == nil:
 		return nil
-	case errors.As(err, &fiberErr):
-		return fiberErr
 	case errors.Is(err, services.ErrUnauthorized):
 		return fiber.ErrUnauthorized
 	case errors.Is(err, services.ErrForbidden):
@@ -28,8 +28,10 @@ func statusCodeFromError(err error) *fiber.Error {
 		return &fiber.Error{Code: http.StatusNotFound, Message: err.Error()}
 	case errors.Is(err, services.ErrConflict):
 		return &fiber.Error{Code: http.StatusConflict, Message: err.Error()}
-	case errors.Is(err, validation.ErrValidationFailed):
+	case errors.Is(err, validation.ErrValidationFailed), errors.As(err, &unmarshalErr):
 		return &fiber.Error{Code: http.StatusBadRequest, Message: err.Error()}
+	case errors.As(err, &fiberErr):
+		return fiberErr
 	default:
 		return &fiber.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
@@ -37,13 +39,11 @@ func statusCodeFromError(err error) *fiber.Error {
 
 // ConvertErrors converts response error to valid status code.
 //
-// TODO: make it a fiber.ErrorHandler instead of middleware.
-func ConvertErrors(state logSchema.WithLogger) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+// It's not a middleware, but an error handler.
+func ConvertErrors(state logSchema.WithLogger) fiber.ErrorHandler {
+	return func(c *fiber.Ctx, err error) error {
 		log := state.Logger()
 
-		// no processing of request
-		err := c.Next()
 		if err == nil {
 			return nil
 		}

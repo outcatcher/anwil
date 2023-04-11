@@ -16,14 +16,13 @@ func (s *AnwilSuite) TestEcho() {
 	t := s.T()
 	t.Parallel()
 
-	response := s.request("GET", parseRequestURL(t, "/api/v1/echo"), nil, nil)
-
+	response := s.request(http.MethodGet, parseRequestURL(t, "/api/v1/echo"), nil, nil)
 	require.Equal(t, http.StatusOK, response.StatusCode)
 
 	responseBody, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 
-	require.EqualValues(t, responseBody, []byte("OK"))
+	require.EqualValues(t, []byte("OK"), responseBody)
 }
 
 func (s *AnwilSuite) login() string {

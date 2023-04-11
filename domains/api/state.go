@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	recov "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/outcatcher/anwil/domains/api/handlers"
+	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
@@ -44,12 +45,14 @@ func (s *State) App() (*fiber.App, error) {
 		ReadTimeout:       defaultTimeout,
 		WriteTimeout:      defaultTimeout,
 		IdleTimeout:       defaultTimeout,
+		ErrorHandler:      middlewares.ConvertErrors(s),
 		AppName:           "anwil",
 	})
 
 	app.Use(
-		logger.New(logger.Config{Output: s.Logger().Writer()}),
+		logger.New(),
 		recov.New(recov.Config{EnableStackTrace: true}),
+		middlewares.RequireJSON,
 	)
 
 	if err := handlers.PopulateEndpoints(app, s); err != nil {

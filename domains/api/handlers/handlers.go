@@ -29,22 +29,19 @@ type handlers struct {
 	state handlersState
 
 	baseGroup fiber.Router
-	secGroup  fiber.Router
 }
 
 func newHandlers(state handlersState, engine *fiber.App, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
-	h.baseGroup = engine.Group(baseAPIPath, middlewares.ConvertErrors(state), middlewares.RequireJSON)
-
-	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(state))
+	h.baseGroup = engine.Group(baseAPIPath)
 
 	return h
 }
 
 func (h *handlers) populate(funcs map[string]services.AddHandlersFunc) error {
 	for name, hFunc := range funcs {
-		if err := hFunc(h.baseGroup, h.secGroup); err != nil {
+		if err := hFunc(h.baseGroup); err != nil {
 			return fmt.Errorf("error adding handlers for service %s: %w", name, err)
 		}
 	}
@@ -52,9 +49,9 @@ func (h *handlers) populate(funcs map[string]services.AddHandlersFunc) error {
 	return nil
 }
 
-func (h *handlers) populateCommon() {
+func (h *handlers) populateCommon(state handlersState) {
 	h.baseGroup.Get("/echo", handleEcho)
-	h.secGroup.Get("/auth-echo", handleEcho)
+	h.baseGroup.Get("/auth-echo", middlewares.JWTAuth(state), handleEcho)
 }
 
 // PopulateEndpoints populates endpoints for API.
@@ -63,7 +60,7 @@ func PopulateEndpoints(engine *fiber.App, state handlersState) error {
 
 	apiHandlers := newHandlers(state, engine, "/api/v1")
 
-	apiHandlers.populateCommon()
+	apiHandlers.populateCommon(state)
 
 	err := apiHandlers.populate(
 		map[string]services.AddHandlersFunc{

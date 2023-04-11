@@ -107,7 +107,10 @@ func (s *AnwilSuite) request(
 		request.Header.Set(k, v)
 	}
 
-	recorder, err := s.apiHandler.Test(request, requestTimeoutMs)
+	recorder, err := s.apiHandler.Test(
+		request,
+		requestTimeoutMs,
+	)
 	require.NoError(t, err)
 
 	return recorder
@@ -139,10 +142,10 @@ func (s *AnwilSuite) SetupSuite() {
 
 	createDebugUser(t, ctx, apiState)
 
-	srv, err := apiState.App()
+	app, err := apiState.App()
 	require.NoError(t, err)
 
-	s.apiHandler = srv
+	s.apiHandler = app
 }
 
 func mapToSlice(src map[string]string) []string {

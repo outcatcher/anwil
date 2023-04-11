@@ -28,5 +28,5 @@ func RequireJSON(c *fiber.Ctx) error {
 		return err
 	}
 
-	return nil
+	return c.Next()
 }

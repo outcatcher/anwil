@@ -14,7 +14,7 @@ import (
 
 // AddUserHandlers - adds user-related endpoints.
 func AddUserHandlers(state schema.WithUsers) services.AddHandlersFunc {
-	return func(baseGroup, secGroup fiber.Router) error {
+	return func(baseGroup fiber.Router) error {
 		users := state.Users()
 
 		baseGroup.Post("/login", handleAuthorize(users))
