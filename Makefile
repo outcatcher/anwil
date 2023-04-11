@@ -3,7 +3,7 @@ SHELL=/usr/bin/bash
 .PHONY: all build run vet test lint
 
 build:
-	go build -trimpath -o ./build/anwil ./cmd/api
+	go build -trimpath -o ./build/anwil ./domains/api/cmd/server
 
 vet:
 	@go vet ./... && echo go vet OK

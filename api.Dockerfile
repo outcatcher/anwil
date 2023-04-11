@@ -24,4 +24,6 @@ COPY static ./static
 COPY ./anwil-config.yaml ./config.yaml
 COPY ./.keys ./.keys
 
+ENV LOG_REQUESTS=1
+
 CMD ["./anwil", "-config", "./config.yaml"]
