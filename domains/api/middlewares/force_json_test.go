@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,26 +40,33 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 
 	cases := []string{http.MethodHead, http.MethodGet, http.MethodDelete}
 
+	okStatus := http.StatusIMUsed
+
 	for _, method := range cases {
 		method := method
 
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			app := fiber.New()
+			app := fiber.New(fiber.Config{ErrorHandler: func(c *fiber.Ctx, err error) error {
+				return c.SendStatus(http.StatusInternalServerError)
+			}})
+			app.Get("/", RequireJSON, func(c *fiber.Ctx) error {
+				return c.SendStatus(okStatus)
+			})
 
-			fiberCtx := app.AcquireCtx(&fasthttp.RequestCtx{})
-			fiberCtx.Method(method)
-			fiberCtx.Body()
-
-			err := RequireJSON(fiberCtx)
+			resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/", nil), 100)
 			require.NoError(t, err)
+
+			require.EqualValues(t, okStatus, resp.StatusCode)
 		})
 	}
 }
 
 func TestRequireJSONOk(t *testing.T) {
 	t.Parallel()
+
+	okStatus := http.StatusIMUsed
 
 	cases := []string{http.MethodPut, http.MethodPost}
 
@@ -68,14 +76,17 @@ func TestRequireJSONOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			app := fiber.New()
+			app := fiber.New(fiber.Config{ErrorHandler: func(c *fiber.Ctx, err error) error {
+				return c.SendStatus(http.StatusInternalServerError)
+			}})
+			app.Get("/", RequireJSON, func(c *fiber.Ctx) error {
+				return c.SendStatus(okStatus)
+			})
 
-			fiberCtx := app.AcquireCtx(&fasthttp.RequestCtx{})
-			fiberCtx.Method(method)
-			fiberCtx.Request().Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-
-			err := RequireJSON(fiberCtx)
+			resp, err := app.Test(httptest.NewRequest(http.MethodGet, "/", nil), 100)
 			require.NoError(t, err)
+
+			require.EqualValues(t, okStatus, resp.StatusCode)
 		})
 	}
 }

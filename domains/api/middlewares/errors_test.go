@@ -75,8 +75,7 @@ func TestConvertErrors(t *testing.T) { //nolint:funlen
 			logWriter := new(bytes.Buffer)
 			state := newLoggerState(logWriter)
 
-			app := fiber.New()
-			app.Use(ConvertErrors(state))
+			app := fiber.New(fiber.Config{ErrorHandler: ConvertErrors(state)})
 
 			app.Get("/", func(c *fiber.Ctx) error {
 				return data.inputErr
