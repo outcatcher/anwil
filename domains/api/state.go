@@ -11,6 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/outcatcher/anwil/domains/api/errorhandler"
 	"github.com/outcatcher/anwil/domains/api/handlers"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
@@ -41,12 +42,14 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
 	engine := echo.New()
+
+	engine.HTTPErrorHandler = errorhandler.HandleErrors()
+
 	engine.Use(
 		middleware.LoggerWithConfig(middleware.LoggerConfig{Output: s.Logger().Writer()}),
 		middleware.Recover(),
 		middleware.RemoveTrailingSlash(),
 		middlewares.RequireJSON,
-		middlewares.ConvertErrors,
 	)
 
 	// запросы не должны использовать родительский контекст

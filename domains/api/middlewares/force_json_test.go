@@ -1,34 +1,16 @@
 package middlewares
 
 import (
-	"bytes"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/stretchr/testify/require"
 )
-
-func closingRecorder(t *testing.T) *httptest.ResponseRecorder {
-	t.Helper()
-
-	recorder := &httptest.ResponseRecorder{Body: new(bytes.Buffer)}
-
-	t.Cleanup(func() {
-		result := recorder.Result()
-		if result == nil {
-			return
-		}
-
-		_ = result.Body.Close()
-	})
-
-	return recorder
-}
 
 func okResponse(c echo.Context) error {
 	return c.String(http.StatusOK, "OK")
@@ -45,7 +27,7 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			rec := closingRecorder(t)
+			rec := th.ClosingRecorder(t)
 			req := &http.Request{
 				URL:    new(url.URL),
 				Method: method,
@@ -73,7 +55,7 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
+			recorder := th.ClosingRecorder(t)
 			request := &http.Request{
 				Method: method,
 				Header: make(http.Header),
@@ -103,7 +85,7 @@ func TestRequireJSONOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
+			recorder := th.ClosingRecorder(t)
 
 			header := make(http.Header)
 			header.Set("content-type", echo.MIMEApplicationJSON)

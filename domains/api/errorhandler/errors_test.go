@@ -1,4 +1,4 @@
-package middlewares
+package errorhandler
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,7 +59,7 @@ func TestConvertErrors(t *testing.T) {
 		t.Run(fmt.Sprint(data.expectedCode), func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
+			recorder := th.ClosingRecorder(t)
 
 			logWriter := bytes.Buffer{}
 			logger := log.New(&logWriter, "", 0)
@@ -69,9 +70,7 @@ func TestConvertErrors(t *testing.T) {
 
 			echoCtx := echo.New().NewContext(req, recorder)
 
-			err = ConvertErrors(func(_ echo.Context) error {
-				return data.inputErr
-			})(echoCtx)
+			HandleErrors()(data.inputErr, echoCtx)
 			require.NoError(t, err)
 
 			require.Contains(t, logWriter.String(), data.inputErr.Error())

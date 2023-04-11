@@ -1,4 +1,4 @@
-package middlewares
+package errorhandler
 
 import (
 	"database/sql"
@@ -38,27 +38,23 @@ func errToHTTPError(err error) *echo.HTTPError {
 	}
 }
 
-// ConvertErrors converts response error to valid status code.
-//
-// TODO: move to c.HTTPErrorHandler instead middleware.
-func ConvertErrors(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+// HandleErrors converts response error to valid status code.
+func HandleErrors() echo.HTTPErrorHandler {
+	return func(err error, c echo.Context) {
 		log := logging.LoggerFromCtx(c.Request().Context())
-
-		// after handling
-		err := next(c)
-		if err == nil {
-			return nil
-		}
 
 		httpError := errToHTTPError(err)
 
 		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, err.Error())
 
 		if httpError.Message == nil {
-			return c.NoContent(httpError.Code)
+			err = c.NoContent(httpError.Code)
+		} else {
+			err = c.String(httpError.Code, fmt.Sprint(httpError.Message))
 		}
 
-		return c.String(httpError.Code, fmt.Sprint(httpError.Message))
+		if err != nil {
+			log.Printf("Error handling error %s", err.Error())
+		}
 	}
 }
