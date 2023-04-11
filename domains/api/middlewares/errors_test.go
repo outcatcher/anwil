@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gofiber/fiber/v2"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/stretchr/testify/require"
@@ -35,16 +34,21 @@ func newLoggerState(output io.Writer) *withLogger {
 func TestConvertErrors(t *testing.T) {
 	t.Parallel()
 
-	gin.SetMode(gin.ReleaseMode)
-
 	cases := []struct {
 		inputErr     error
 		expectedCode int
 		expectedBody string
 	}{
-		{services.ErrUnauthorized, http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized)},
-		{services.ErrForbidden, http.StatusForbidden, http.StatusText(http.StatusForbidden)},
-
+		{
+			services.ErrUnauthorized,
+			http.StatusUnauthorized,
+			http.StatusText(http.StatusUnauthorized),
+		},
+		{
+			services.ErrForbidden,
+			http.StatusForbidden,
+			http.StatusText(http.StatusForbidden),
+		},
 		{
 			errForTest,
 			http.StatusInternalServerError,

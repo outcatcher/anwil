@@ -33,13 +33,13 @@ func handleAuthorize(usr schema.Service) fiber.Handler {
 			Password: req.Password,
 		}
 
-		tok, err := usr.GenerateUserToken(c.Request.Context(), user)
+		tok, err := usr.GenerateUserToken(c.Context(), user)
 		if err != nil {
-			_ = c.Error(err)
-
-			return
+			return fmt.Errorf("error authorizing user: %w", err)
 		}
 
-		c.AbortWithStatusJSON(http.StatusOK, jwtResponse{Token: tok})
+		_ = c.SendStatus(http.StatusOK)
+
+		return c.JSON(jwtResponse{Token: tok})
 	}
 }

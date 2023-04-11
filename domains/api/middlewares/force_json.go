@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,6 +12,8 @@ import (
 
 const applicationJSON = "application/json"
 
+var errInvalidMIMEType = errors.New("invalid MIME type")
+
 // RequireJSON forces usage of application/json content type in POST and PUT request to servers.
 func RequireJSON(c *fiber.Ctx) error {
 	typ := string(c.Request().Header.ContentType())
@@ -18,8 +21,8 @@ func RequireJSON(c *fiber.Ctx) error {
 	if (c.Method() == http.MethodPost || c.Method() == http.MethodPut) &&
 		!strings.HasPrefix(typ, applicationJSON) {
 		err := fmt.Errorf(
-			"%w: invalid MIME type, %s expected",
-			validation.ErrValidationFailed, applicationJSON,
+			"%w: %w, %s expected",
+			validation.ErrValidationFailed, errInvalidMIMEType, applicationJSON,
 		)
 
 		return err

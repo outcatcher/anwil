@@ -18,8 +18,12 @@ func (s *AnwilSuite) TestEcho() {
 
 	response := s.request("GET", parseRequestURL(t, "/api/v1/echo"), nil, nil)
 
-	require.Equal(t, http.StatusOK, response.Code)
-	require.EqualValues(t, response.Body.Bytes(), []byte("OK"))
+	require.Equal(t, http.StatusOK, response.StatusCode)
+
+	responseBody, err := io.ReadAll(response.Body)
+	require.NoError(t, err)
+
+	require.EqualValues(t, responseBody, []byte("OK"))
 }
 
 func (s *AnwilSuite) login() string {
@@ -40,7 +44,7 @@ func (s *AnwilSuite) login() string {
 	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, response.Code, string(body))
+	require.Equal(t, http.StatusOK, response.StatusCode, string(body))
 
 	var loginResponse struct {
 		Token string `json:"token"`
@@ -76,7 +80,7 @@ func (s *AnwilSuite) TestSecureEcho() {
 	body, err := io.ReadAll(response.Body)
 	require.NoError(t, err)
 
-	require.Equal(t, http.StatusOK, response.Code, string(body))
+	require.Equal(t, http.StatusOK, response.StatusCode, string(body))
 }
 
 func (s *AnwilSuite) TestSecureEcho_401() {
@@ -107,7 +111,7 @@ func (s *AnwilSuite) TestSecureEcho_401() {
 				data.headers,
 			)
 
-			require.Equal(t, http.StatusUnauthorized, response.Code, response.Body.String())
+			require.Equal(t, http.StatusUnauthorized, response.StatusCode)
 		})
 	}
 }

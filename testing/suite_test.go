@@ -22,7 +22,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/outcatcher/anwil/domains/api"
 	"github.com/outcatcher/anwil/domains/core/config"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
@@ -40,6 +40,8 @@ const (
 	containerStartPeriod    = 500 * time.Millisecond
 	containerStartUpTimeout = 10 * time.Second
 
+	requestTimeoutMs = 100
+
 	debugUsername = "debug"
 	debugFullName = "Debug Wisher"
 )
@@ -55,13 +57,13 @@ type AnwilSuite struct {
 	suite.Suite
 
 	log        *log.Logger
-	apiHandler http.HandlerFunc
+	apiHandler *fiber.App
 }
 
 // requestJSON sends request with `content-type: application/json`.
 func (s *AnwilSuite) requestJSON(
 	method string, url *url.URL, body any, headers map[string]string,
-) *httptest.ResponseRecorder {
+) *http.Response {
 	t := s.T()
 	t.Helper()
 
@@ -87,18 +89,16 @@ func (s *AnwilSuite) requestJSON(
 		headers = make(map[string]string)
 	}
 
-	headers["content-type"] = gin.MIMEJSON
+	headers[fiber.HeaderContentType] = fiber.MIMEApplicationJSON
 
 	return s.request(method, url, reader, headers)
 }
 
 func (s *AnwilSuite) request(
 	method string, url *url.URL, body io.Reader, headers map[string]string,
-) *httptest.ResponseRecorder {
+) *http.Response {
 	t := s.T()
 	t.Helper()
-
-	responseRecorder := httptest.NewRecorder()
 
 	request := httptest.NewRequest(method, url.Path, body)
 	request.URL.RawQuery = url.Query().Encode()
@@ -107,9 +107,10 @@ func (s *AnwilSuite) request(
 		request.Header.Set(k, v)
 	}
 
-	s.apiHandler(responseRecorder, request)
+	recorder, err := s.apiHandler.Test(request, requestTimeoutMs)
+	require.NoError(t, err)
 
-	return responseRecorder
+	return recorder
 }
 
 func (s *AnwilSuite) SetupSuite() {
@@ -123,8 +124,6 @@ func (s *AnwilSuite) SetupSuite() {
 		// don't log http requests on server side
 		ctx = logging.CtxWithLogger(ctx, log.New(io.Discard, "", log.LstdFlags))
 	}
-
-	gin.SetMode(gin.ReleaseMode) // no need for request logs
 
 	configPath := "./fixtures/test_config.yaml"
 
@@ -140,13 +139,10 @@ func (s *AnwilSuite) SetupSuite() {
 
 	createDebugUser(t, ctx, apiState)
 
-	srv, err := apiState.Server(ctx)
+	srv, err := apiState.App()
 	require.NoError(t, err)
 
-	// gin engine as a handler function.
-	// Note that context is not passed when using handler this way.
-	// This is not equivalent to starting server with Serve.
-	s.apiHandler = srv.Handler.ServeHTTP
+	s.apiHandler = srv
 }
 
 func mapToSlice(src map[string]string) []string {

@@ -30,7 +30,7 @@ func (s *AnwilSuite) TestUserCreate_200() {
 		nil,
 	)
 
-	require.EqualValues(t, http.StatusCreated, resp.Code)
+	require.EqualValues(t, http.StatusCreated, resp.StatusCode)
 }
 
 func (s *AnwilSuite) TestUserCreate_400() {
@@ -64,7 +64,7 @@ func (s *AnwilSuite) TestUserCreate_400() {
 				nil,
 			)
 
-			require.EqualValues(t, http.StatusBadRequest, resp.Code)
+			require.EqualValues(t, http.StatusBadRequest, resp.StatusCode)
 		})
 	}
 }
@@ -87,5 +87,5 @@ func (s *AnwilSuite) TestUserCreate_409() {
 		userData,
 		nil,
 	)
-	require.EqualValues(t, http.StatusConflict, resp.Code)
+	require.EqualValues(t, http.StatusConflict, resp.StatusCode)
 }

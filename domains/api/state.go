@@ -35,8 +35,8 @@ type State struct {
 	services svcSchema.ServiceMapping
 }
 
-// Server creates new API server instance.
-func (s *State) Server() (*fasthttp.Server, error) {
+// App creates new API instance.
+func (s *State) App() (*fiber.App, error) {
 	app := fiber.New(fiber.Config{
 		StrictRouting:     false,
 		CaseSensitive:     false,
@@ -54,6 +54,16 @@ func (s *State) Server() (*fasthttp.Server, error) {
 
 	if err := handlers.PopulateEndpoints(app, s); err != nil { //nolint:contextcheck
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
+	}
+
+	return app, nil
+}
+
+// Server creates new API server instance.
+func (s *State) Server() (*fasthttp.Server, error) {
+	app, err := s.App()
+	if err != nil {
+		return nil, err
 	}
 
 	return app.Server(), nil

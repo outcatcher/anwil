@@ -1,16 +1,13 @@
-//go:build testt
-
 package middlewares
 
 import (
 	"bytes"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gofiber/fiber/v2"
+	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
@@ -44,16 +41,14 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 			t.Parallel()
 
 			app := fiber.New()
-			app.Use(RequireJSON)
 
-			handler := app.Handler()
+			fiberCtx := app.AcquireCtx(&fasthttp.RequestCtx{})
+			fiberCtx.Method(method)
+			fiberCtx.Body()
 
-			fiberCtx := &fasthttp.RequestCtx{}
-			fiberCtx.Request.SetRequestURI("/")
-
-			handler(fiberCtx)
-
-			require.Equal(t, http.StatusBadRequest, fiberCtx.Response.StatusCode())
+			err := RequireJSON(fiberCtx)
+			require.ErrorIs(t, err, errInvalidMIMEType)
+			require.ErrorIs(t, err, validation.ErrValidationFailed)
 		})
 	}
 }
@@ -61,10 +56,7 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 func TestRequireJSONNoContentTypeOk(t *testing.T) {
 	t.Parallel()
 
-	recorder := closingRecorder(t)
-	ginCtx, _ := gin.CreateTestContext(recorder)
-
-	cases := []string{http.MethodGet, http.MethodDelete}
+	cases := []string{http.MethodHead, http.MethodGet, http.MethodDelete}
 
 	for _, method := range cases {
 		method := method
@@ -72,20 +64,14 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			ginCtx.Request = &http.Request{
-				Method: method,
-				Header: make(http.Header),
-			}
-			fiberCtx := &fasthttp.RequestCtx{}
-			fiberCtx.Method()
-			fiberCtx.Request.SetRequestURI("/")
+			app := fiber.New()
 
-			RequireJSON(fiberCtx)
+			fiberCtx := app.AcquireCtx(&fasthttp.RequestCtx{})
+			fiberCtx.Method(method)
+			fiberCtx.Body()
 
-			result := recorder.Result()
-			require.NotNil(t, result)
-
-			require.Equal(t, http.StatusOK, result.StatusCode)
+			err := RequireJSON(fiberCtx)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -101,30 +87,14 @@ func TestRequireJSONOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
-			ginCtx, _ := gin.CreateTestContext(recorder)
+			app := fiber.New()
 
-			header := make(http.Header)
-			header.Set("content-type", gin.MIMEJSON)
+			fiberCtx := app.AcquireCtx(&fasthttp.RequestCtx{})
+			fiberCtx.Method(method)
+			fiberCtx.Request().Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 
-			ginCtx.Request = &http.Request{
-				Method: method,
-				Header: header,
-			}
-
-			RequireJSON(ginCtx)
-
-			result := recorder.Result()
-			require.NotNil(t, result)
-
-			responseData, err := io.ReadAll(result.Body)
+			err := RequireJSON(fiberCtx)
 			require.NoError(t, err)
-
-			defer func() {
-				require.NoError(t, result.Body.Close())
-			}()
-
-			require.Equal(t, http.StatusOK, result.StatusCode, string(responseData))
 		})
 	}
 }

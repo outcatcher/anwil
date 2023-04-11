@@ -29,7 +29,7 @@ func (s *AnwilSuite) TestLoginInvalidPassword() {
 		nil,
 	)
 
-	require.Equal(t, http.StatusUnauthorized, response.Code)
+	require.Equal(t, http.StatusUnauthorized, response.StatusCode)
 }
 
 func (s *AnwilSuite) TestLoginMissingCredentials() {
@@ -43,5 +43,5 @@ func (s *AnwilSuite) TestLoginMissingCredentials() {
 		nil,
 	)
 
-	require.Equal(t, http.StatusBadRequest, response.Code)
+	require.Equal(t, http.StatusBadRequest, response.StatusCode)
 }
