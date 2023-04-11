@@ -13,7 +13,7 @@ import (
 func randomUserData() mapBody {
 	return mapBody{
 		"username":  th.RandomString("user-", 5),
-		"password":  th.RandomString("pwd-", 5),
+		"password":  th.RandomString("pwd-", 30),
 		"full_name": th.RandomString("I AM ", 8),
 	}
 }
@@ -30,7 +30,7 @@ func (s *AnwilSuite) TestUserCreate_200() {
 		nil,
 	)
 
-	require.EqualValues(t, http.StatusCreated, resp.Code)
+	require.EqualValues(t, http.StatusCreated, resp.Code, resp.Body.String())
 }
 
 func (s *AnwilSuite) TestUserCreate_400() {
