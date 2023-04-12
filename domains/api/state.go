@@ -53,7 +53,7 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	)
 
 	// запросы не должны использовать родительский контекст
-	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck
+	if err := handlers.PopulateEndpoints(ctx, engine, s); err != nil {
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
 	}
 

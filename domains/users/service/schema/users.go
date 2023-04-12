@@ -20,7 +20,6 @@ type Service interface {
 	GetUser(ctx context.Context, username string) (*dto.User, error)
 	SaveUser(ctx context.Context, user dto.User) error
 	GenerateUserToken(ctx context.Context, user dto.User) (string, error)
-	ValidateUserToken(ctx context.Context, token string) (*dto.JWTClaims, error)
 }
 
 // WithUsers can return users service instance.

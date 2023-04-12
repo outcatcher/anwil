@@ -20,11 +20,9 @@ const (
 	jwtIssuer            = "anwil"
 )
 
-// Validate validates token and return JWT payload data.
-func Validate(tokenString string, key crypto.PublicKey) (*schema.Claims, error) {
-	claims := new(schema.Claims)
-
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+// Ed25519KeyFunc returns a callback function to supply the key for verification.
+func Ed25519KeyFunc(key crypto.PublicKey) jwt.Keyfunc {
+	return func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodEd25519)
 		if !ok {
 			return nil, fmt.Errorf(
@@ -34,7 +32,14 @@ func Validate(tokenString string, key crypto.PublicKey) (*schema.Claims, error) 
 		}
 
 		return key, nil
-	})
+	}
+}
+
+// Validate validates token and return JWT payload data.
+func Validate(tokenString string, key crypto.PublicKey) (*schema.Claims, error) {
+	claims := new(schema.Claims)
+
+	_, err := jwt.ParseWithClaims(tokenString, claims, Ed25519KeyFunc(key))
 	if err != nil {
 		var validationErr *jwt.ValidationError
 

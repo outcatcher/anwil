@@ -4,6 +4,7 @@ Package handlers defines and populates API endpoints.
 package handlers
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -32,11 +33,11 @@ type handlers struct {
 	secGroup  *echo.Group
 }
 
-func newHandlers(state handlersState, echo *echo.Echo, baseAPIPath string) *handlers {
+func newHandlers(ctx context.Context, state handlersState, echo *echo.Echo, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
 	h.baseGroup = echo.Group(baseAPIPath)
-	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(state))
+	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(ctx, state))
 
 	return h
 }
@@ -57,16 +58,16 @@ func (h *handlers) populateCommon() {
 }
 
 // PopulateEndpoints populates endpoints for API.
-func PopulateEndpoints(engine *echo.Echo, state handlersState) error {
+func PopulateEndpoints(ctx context.Context, engine *echo.Echo, state handlersState) error {
 	handleStatic(engine, state.Config().API.StaticPath)
 
-	apiHandlers := newHandlers(state, engine, "/api/v1")
+	apiHandlers := newHandlers(ctx, state, engine, "/api/v1")
 
 	apiHandlers.populateCommon()
 
 	err := apiHandlers.populate(
 		map[string]services.AddHandlersFunc{
-			"users": userHandlers.AddUserHandlers(state),
+			"users": userHandlers.AddUserHandlers(state), //nolint:contextcheck
 		},
 	)
 	if err != nil {

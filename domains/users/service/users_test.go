@@ -179,32 +179,3 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() {
 		require.NotEmpty(t, token)
 	})
 }
-
-func (s *UsersSuite) TestUsers_ValidateToken() {
-	t := s.T()
-	t.Parallel()
-
-	ctx := context.Background()
-
-	testUser := s.createTestUser(ctx)
-
-	token, err := s.users.GenerateUserToken(ctx, testUser)
-	require.NoError(t, err)
-	require.NotEmpty(t, token)
-
-	t.Run("valid", func(t *testing.T) {
-		t.Parallel()
-
-		userInfo, err := s.users.ValidateUserToken(ctx, token)
-		require.NoError(t, err)
-		require.EqualValues(t, testUser.Username, userInfo.Username)
-	})
-
-	t.Run("invalid", func(t *testing.T) {
-		t.Parallel()
-
-		userInfo, err := s.users.ValidateUserToken(ctx, "123")
-		require.ErrorIs(t, err, services.ErrUnauthorized)
-		require.Empty(t, userInfo)
-	})
-}
