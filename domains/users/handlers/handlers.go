@@ -18,7 +18,6 @@ func AddUserHandlers(state schema.WithUsers) services.AddHandlersFunc {
 		users := state.Users()
 
 		baseGroup.POST("/login", handleAuthorize(users))
-
 		baseGroup.POST("/wisher", handleUserRegister(users))
 
 		return nil
