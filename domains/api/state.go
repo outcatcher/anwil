@@ -9,8 +9,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/outcatcher/anwil/domains/api/errorhandler"
 	"github.com/outcatcher/anwil/domains/api/handlers"
+	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
@@ -38,15 +41,19 @@ type State struct {
 func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	cfg := s.Config()
 
-	engine := gin.New()
-	engine.Use(gin.LoggerWithWriter(s.Logger().Writer()), gin.Recovery())
+	engine := echo.New()
 
-	engine.HandleMethodNotAllowed = true
-	engine.RedirectFixedPath = true
-	engine.RemoveExtraSlash = true
+	engine.HTTPErrorHandler = errorhandler.HandleErrors()
+
+	engine.Use(
+		middleware.LoggerWithConfig(middleware.LoggerConfig{Output: s.Logger().Writer()}),
+		middleware.Recover(),
+		middleware.RemoveTrailingSlash(),
+		middlewares.RequireJSON,
+	)
 
 	// запросы не должны использовать родительский контекст
-	if err := handlers.PopulateEndpoints(engine, s); err != nil { //nolint:contextcheck
+	if err := handlers.PopulateEndpoints(ctx, engine, s); err != nil {
 		return nil, fmt.Errorf("error populating endpoints: %w", err)
 	}
 

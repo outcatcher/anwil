@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	users "github.com/outcatcher/anwil/domains/users/dto"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
@@ -19,12 +20,12 @@ type jwtResponse struct {
 	Token string `json:"token"`
 }
 
-func handleAuthorize(usr schema.Service) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func handleAuthorize(usr schema.Service) echo.HandlerFunc {
+	return func(c echo.Context) error {
 		req := new(credentialsRequest)
 
 		if err := bindAndValidateJSON(c, req); err != nil {
-			return
+			return fmt.Errorf("error authorizing user: %w", err)
 		}
 
 		user := users.User{
@@ -32,13 +33,11 @@ func handleAuthorize(usr schema.Service) gin.HandlerFunc {
 			Password: req.Password,
 		}
 
-		tok, err := usr.GenerateUserToken(c.Request.Context(), user)
+		tok, err := usr.GenerateUserToken(c.Request().Context(), user)
 		if err != nil {
-			_ = c.Error(err)
-
-			return
+			return fmt.Errorf("error authorizing user: %w", err)
 		}
 
-		c.AbortWithStatusJSON(http.StatusOK, jwtResponse{Token: tok})
+		return c.JSON(http.StatusOK, jwtResponse{Token: tok})
 	}
 }

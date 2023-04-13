@@ -61,12 +61,12 @@ func (u *users) Init(ctx context.Context, state interface{}) error {
 		configSchema.ConfigInject,
 	)
 	if err != nil {
-		return fmt.Errorf("erorr initializing user service: %w", err)
+		return fmt.Errorf("error initializing user service: %w", err)
 	}
 
 	key, err := u.cfg.GetPrivateKey(ctx)
 	if err != nil {
-		return fmt.Errorf("error creating Auth service: %w", err)
+		return fmt.Errorf("error initializing user service: %w", err)
 	}
 
 	u.privateKey = key

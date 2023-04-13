@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func handleEcho(c *gin.Context) {
-	c.String(http.StatusOK, "OK")
+func handleEcho(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
 }

@@ -62,18 +62,6 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 	return nil
 }
 
-// ValidateUserToken validates user token.
-func (u *users) ValidateUserToken(_ context.Context, tokenString string) (*dto.JWTClaims, error) {
-	claims, err := token.Validate(tokenString, u.privateKey.Public())
-	if err != nil {
-		return nil, fmt.Errorf("error validating user token: %w", err)
-	}
-
-	return &dto.JWTClaims{
-		Username: claims.Username,
-	}, nil
-}
-
 // GenerateUserToken validates user credentials and returns token.
 func (u *users) GenerateUserToken(ctx context.Context, user dto.User) (string, error) {
 	existing, err := u.GetUser(ctx, user.Username)

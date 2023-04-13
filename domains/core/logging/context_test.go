@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,14 +58,14 @@ func TestLoggerFromCtx_ginCtx(t *testing.T) {
 
 	expectedString := "test me in context\n"
 
-	engine := gin.New()
+	engine := echo.New()
 
-	engine.Handle(http.MethodGet, "/", func(c *gin.Context) {
-		logger := LoggerFromCtx(c.Request.Context())
+	engine.Add(http.MethodGet, "/", func(c echo.Context) error {
+		logger := LoggerFromCtx(c.Request().Context())
 
 		logger.Print(expectedString)
 
-		c.AbortWithStatus(http.StatusOK)
+		return c.NoContent(http.StatusOK)
 	})
 
 	server := &http.Server{

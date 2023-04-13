@@ -1,31 +1,19 @@
 package middlewares
 
 import (
-	"bytes"
 	"io"
 	"net/http"
-	"net/http/httptest"
+	"net/url"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	th "github.com/outcatcher/anwil/domains/core/testhelpers"
+	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/stretchr/testify/require"
 )
 
-func closingRecorder(t *testing.T) *httptest.ResponseRecorder {
-	t.Helper()
-
-	recorder := &httptest.ResponseRecorder{Body: new(bytes.Buffer)}
-
-	t.Cleanup(func() {
-		result := recorder.Result()
-		if result == nil {
-			return
-		}
-
-		_ = result.Body.Close()
-	})
-
-	return recorder
+func okResponse(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
 }
 
 func TestRequireJSONMissingHeader(t *testing.T) {
@@ -39,29 +27,25 @@ func TestRequireJSONMissingHeader(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
-			ginCtx, _ := gin.CreateTestContext(recorder)
-
-			ginCtx.Request = &http.Request{
+			rec := th.ClosingRecorder(t)
+			req := &http.Request{
+				URL:    new(url.URL),
 				Method: method,
 				Header: make(http.Header),
 			}
 
-			RequireJSON(ginCtx)
+			echoCtx := echo.New().NewContext(req, rec)
 
-			result := recorder.Result()
-			require.NotNil(t, result)
+			err := RequireJSON(okResponse)(echoCtx)
+			require.Error(t, err)
 
-			require.Equal(t, http.StatusBadRequest, result.StatusCode)
+			require.ErrorIs(t, err, validation.ErrValidationFailed)
 		})
 	}
 }
 
 func TestRequireJSONNoContentTypeOk(t *testing.T) {
 	t.Parallel()
-
-	recorder := closingRecorder(t)
-	ginCtx, _ := gin.CreateTestContext(recorder)
 
 	cases := []string{http.MethodGet, http.MethodDelete}
 
@@ -71,12 +55,16 @@ func TestRequireJSONNoContentTypeOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			ginCtx.Request = &http.Request{
+			recorder := th.ClosingRecorder(t)
+			request := &http.Request{
 				Method: method,
 				Header: make(http.Header),
 			}
 
-			RequireJSON(ginCtx)
+			echoCtx := echo.New().NewContext(request, recorder)
+
+			err := RequireJSON(okResponse)(echoCtx)
+			require.NoError(t, err)
 
 			result := recorder.Result()
 			require.NotNil(t, result)
@@ -97,18 +85,20 @@ func TestRequireJSONOk(t *testing.T) {
 		t.Run(method, func(t *testing.T) {
 			t.Parallel()
 
-			recorder := closingRecorder(t)
-			ginCtx, _ := gin.CreateTestContext(recorder)
+			recorder := th.ClosingRecorder(t)
 
 			header := make(http.Header)
-			header.Set("content-type", gin.MIMEJSON)
+			header.Set("content-type", echo.MIMEApplicationJSON)
 
-			ginCtx.Request = &http.Request{
+			request := &http.Request{
 				Method: method,
 				Header: header,
 			}
 
-			RequireJSON(ginCtx)
+			echoCtx := echo.New().NewContext(request, recorder)
+
+			err := RequireJSON(okResponse)(echoCtx)
+			require.NoError(t, err)
 
 			result := recorder.Result()
 			require.NotNil(t, result)
