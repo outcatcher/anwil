@@ -19,8 +19,10 @@ var (
 	logWriter  = &bytes.Buffer{}
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	log.SetOutput(logWriter)
+
+	m.Run()
 }
 
 func TestConvertErrors(t *testing.T) {
