@@ -118,10 +118,10 @@ func (s *AnwilSuite) SetupSuite() {
 	ctx := context.Background()
 
 	if os.Getenv("LOG_REQUESTS") != "" {
-		ctx = logging.CtxWithLogger(ctx, log.Default())
+		log.SetOutput(logging.GetDefaultLogWriter())
 	} else {
 		// don't log http requests on server side
-		ctx = logging.CtxWithLogger(ctx, log.New(io.Discard, "", log.LstdFlags))
+		log.SetOutput(io.Discard)
 	}
 
 	configPath := "./fixtures/test_config.yaml"

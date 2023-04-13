@@ -3,18 +3,17 @@
 package logging
 
 import (
-	"log"
+	"io"
 	"log/syslog"
+	"os"
 )
 
-// GetDefaultLogger returns syslogger with "anwil-migrate" prefix.
-func GetDefaultLogger() *log.Logger {
+// GetDefaultLogWriter returns writer to syslog with "anwil-migrate" prefix if possible.
+func GetDefaultLogWriter() io.Writer {
 	sysWriter, err := syslog.New(syslog.LOG_INFO, "anwil-api")
 	if err != nil {
-		return log.Default()
+		return os.Stdout
 	}
 
-	sysLogger := log.New(sysWriter, "", log.LstdFlags)
-
-	return sysLogger
+	return sysWriter
 }

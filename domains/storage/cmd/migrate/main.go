@@ -15,30 +15,28 @@ import (
 )
 
 func main() {
-	logger := logging.GetDefaultLogger()
-
-	log.SetOutput(logger.Writer()) // for subsequent goose calls
+	log.SetOutput(logging.GetDefaultLogWriter()) // for subsequent goose calls
 
 	argConfigPath := flag.String("config", "", "Configuration path")
 	flag.Parse()
 
 	if *argConfigPath == "" {
-		logger.Fatalf("please provide configuation path")
+		log.Fatalf("please provide configuation path")
 	}
 
 	configPath, err := filepath.Abs(filepath.Clean(*argConfigPath))
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	ctx := context.Background()
 
 	cfg, err := config.LoadServerConfiguration(ctx, configPath)
 	if err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	if err := storage.ApplyMigrations(cfg.DB); err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 }

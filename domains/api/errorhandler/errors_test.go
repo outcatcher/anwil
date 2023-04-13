@@ -2,7 +2,6 @@ package errorhandler
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -10,13 +9,19 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/stretchr/testify/require"
 )
 
-var errForTest = errors.New("magic error text")
+var (
+	errForTest = errors.New("magic error text")
+	logWriter  = &bytes.Buffer{}
+)
+
+func init() {
+	log.SetOutput(logWriter)
+}
 
 func TestConvertErrors(t *testing.T) {
 	t.Parallel()
@@ -61,11 +66,10 @@ func TestConvertErrors(t *testing.T) {
 
 			recorder := th.ClosingRecorder(t)
 
-			logWriter := bytes.Buffer{}
-			logger := log.New(&logWriter, "", 0)
-			ctx := logging.CtxWithLogger(context.Background(), logger)
+			url := fmt.Sprintf("/err/example/%s", th.RandomString("", 5))
+			method := http.MethodGet
 
-			req, err := http.NewRequestWithContext(ctx, http.MethodGet, "/err/example", nil)
+			req, err := http.NewRequest(method, url, nil)
 			require.NoError(t, err)
 
 			echoCtx := echo.New().NewContext(req, recorder)
@@ -73,7 +77,9 @@ func TestConvertErrors(t *testing.T) {
 			HandleErrors()(data.inputErr, echoCtx)
 			require.NoError(t, err)
 
-			require.Contains(t, logWriter.String(), data.inputErr.Error())
+			expectedErrString := fmt.Sprintf("Error performing %s %s: %s", method, url, data.inputErr.Error())
+
+			require.Contains(t, logWriter.String(), expectedErrString)
 			require.EqualValues(t, data.expectedBody, recorder.Body.String())
 		})
 	}
