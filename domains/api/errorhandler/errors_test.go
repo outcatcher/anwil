@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -22,7 +23,7 @@ var (
 func TestMain(m *testing.M) {
 	log.SetOutput(logWriter)
 
-	m.Run()
+	os.Exit(m.Run())
 }
 
 func TestConvertErrors(t *testing.T) {
