@@ -33,11 +33,11 @@ type handlers struct {
 	secGroup  *echo.Group
 }
 
-func newHandlers(ctx context.Context, state handlersState, echo *echo.Echo, baseAPIPath string) *handlers {
+func newHandlers(_ context.Context, state handlersState, echo *echo.Echo, baseAPIPath string) *handlers {
 	h := &handlers{state: state}
 
 	h.baseGroup = echo.Group(baseAPIPath)
-	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(ctx, state))
+	h.secGroup = h.baseGroup.Group("", middlewares.JWTAuth(state))
 
 	return h
 }

@@ -6,13 +6,13 @@ package config
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
 	lru "github.com/hashicorp/golang-lru/v2"
 	"github.com/imdario/mergo"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
-	"github.com/outcatcher/anwil/domains/core/logging"
 	"github.com/sethvargo/go-envconfig"
 	"gopkg.in/yaml.v3"
 )
@@ -48,9 +48,7 @@ func LoadServerConfiguration(ctx context.Context, path string) (*schema.Configur
 	defer func() {
 		err := file.Close()
 		if err != nil {
-			logger := logging.LoggerFromCtx(ctx)
-
-			logger.Printf("error closing config file: %v", err)
+			log.Printf("error closing config file: %v", err)
 		}
 	}()
 

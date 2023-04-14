@@ -53,7 +53,7 @@ func (*users) ID() svcSchema.ServiceID {
 }
 
 // Init initialized user instance with given state.
-func (u *users) Init(ctx context.Context, state interface{}) error {
+func (u *users) Init(_ context.Context, state interface{}) error {
 	err := services.InjectServiceWith(
 		u, state,
 		storageSchema.StorageInject,
@@ -64,7 +64,7 @@ func (u *users) Init(ctx context.Context, state interface{}) error {
 		return fmt.Errorf("error initializing user service: %w", err)
 	}
 
-	key, err := u.cfg.GetPrivateKey(ctx)
+	key, err := u.cfg.GetPrivateKey()
 	if err != nil {
 		return fmt.Errorf("error initializing user service: %w", err)
 	}

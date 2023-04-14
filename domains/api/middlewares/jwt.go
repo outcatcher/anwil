@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"context"
-
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
@@ -17,8 +15,8 @@ const (
 //
 // This middleware happens before request is processed, so we need to abort context early,
 // so main handler won't be triggered.
-func JWTAuth(ctx context.Context, state schema.WithConfig) echo.MiddlewareFunc {
-	pKey, err := state.Config().GetPrivateKey(ctx)
+func JWTAuth(state schema.WithConfig) echo.MiddlewareFunc {
+	pKey, err := state.Config().GetPrivateKey()
 	if err != nil {
 		return nil
 	}

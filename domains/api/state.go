@@ -16,7 +16,6 @@ import (
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
-	"github.com/outcatcher/anwil/domains/core/logging"
 	"github.com/outcatcher/anwil/domains/core/services"
 	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/storage"
@@ -31,7 +30,6 @@ const defaultTimeout = time.Minute
 type State struct {
 	cfg *configSchema.Configuration
 
-	log     *log.Logger
 	storage storageSchema.QueryExecutor
 
 	services svcSchema.ServiceMapping
@@ -87,8 +85,8 @@ func (s *State) WithServices(services ...svcSchema.Service) {
 }
 
 // Logger returns configured logger.
-func (s *State) Logger() *log.Logger {
-	return s.log
+func (*State) Logger() *log.Logger {
+	return log.Default()
 }
 
 // Config returns server configuration.
@@ -120,7 +118,6 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 
 	apiState := &State{
 		cfg:     cfg,
-		log:     logging.LoggerFromCtx(ctx),
 		storage: db,
 	}
 

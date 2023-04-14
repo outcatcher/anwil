@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,21 +22,19 @@ import (
 const defaultTimeout = time.Minute
 
 func main() {
-	logger := logging.GetDefaultLogger()
+	log.SetOutput(logging.GetDefaultLogWriter())
 
 	argConfigPath := flag.String("config", "", "Configuration path")
 	flag.Parse()
 
 	if *argConfigPath == "" {
-		logger.Fatalf("please provide configuration path")
+		log.Fatalf("please provide configuration path")
 	}
 
-	logger.Printf("using configuration at %s", *argConfigPath)
+	log.Printf("using configuration at %s", *argConfigPath)
 
-	ctx := logging.CtxWithLogger(context.Background(), logger)
-
-	if err := exec(ctx, *argConfigPath); err != nil {
-		logger.Fatal(err)
+	if err := exec(context.Background(), *argConfigPath); err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -59,13 +58,11 @@ func exec(ctx context.Context, configPath string) error {
 	go func() {
 		sig := <-sigChan
 
-		logger := logging.LoggerFromCtx(ctx)
-
-		logger.Printf("received signal: %+v", sig)
+		log.Printf("received signal: %+v", sig)
 
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			logger.Printf("server shutdown faced error: %s", err)
+			log.Printf("server shutdown faced error: %s", err)
 		}
 	}()
 

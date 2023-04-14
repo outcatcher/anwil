@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
@@ -59,8 +58,6 @@ func newStateWithTMPKey(t *testing.T) *configState {
 func TestJWTAuth_401(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-
 	state := newStateWithTMPKey(t)
 
 	rec := th.ClosingRecorder(t)
@@ -72,7 +69,7 @@ func TestJWTAuth_401(t *testing.T) {
 
 	echoCtx := echo.New().NewContext(req, rec)
 
-	err := JWTAuth(ctx, state)(func(c echo.Context) error {
+	err := JWTAuth(state)(func(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	})(echoCtx)
 	require.ErrorAs(t, err, &echo.ErrUnauthorized)
@@ -80,8 +77,6 @@ func TestJWTAuth_401(t *testing.T) {
 
 func TestJWTAuth_200(t *testing.T) {
 	t.Parallel()
-
-	ctx := context.Background()
 
 	state := newStateWithTMPKey(t)
 
@@ -101,7 +96,7 @@ func TestJWTAuth_200(t *testing.T) {
 
 	echoCtx := echo.New().NewContext(req, rec)
 
-	err = JWTAuth(ctx, state)(func(c echo.Context) error {
+	err = JWTAuth(state)(func(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	})(echoCtx)
 	require.NoError(t, err)

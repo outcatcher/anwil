@@ -7,10 +7,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/outcatcher/anwil/domains/core/logging"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/core/validation"
 )
@@ -44,20 +44,13 @@ func errToHTTPError(err error) *echo.HTTPError {
 // HandleErrors converts response error to valid status code.
 func HandleErrors() echo.HTTPErrorHandler {
 	return func(err error, c echo.Context) {
-		log := logging.LoggerFromCtx(c.Request().Context())
-
 		httpError := errToHTTPError(err)
 
 		log.Printf("Error performing %s %s: %s", c.Request().Method, c.Request().URL, err.Error())
 
-		if httpError.Message == nil {
-			err = c.NoContent(httpError.Code)
-		} else {
-			err = c.String(httpError.Code, fmt.Sprint(httpError.Message))
-		}
-
-		if err != nil {
-			log.Printf("Error handling error %s", err.Error())
+		responseErr := c.String(httpError.Code, fmt.Sprint(httpError.Message))
+		if responseErr != nil {
+			log.Printf("Error handling error %s: %s", err.Error(), responseErr.Error())
 		}
 	}
 }

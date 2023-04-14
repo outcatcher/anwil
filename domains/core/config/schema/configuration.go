@@ -6,15 +6,14 @@ There must be no use of other DTOs in this package.
 package schema
 
 import (
-	"context"
 	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/outcatcher/anwil/domains/core/logging"
 	"github.com/outcatcher/anwil/domains/core/services"
 )
 
@@ -74,7 +73,7 @@ type Configuration struct {
 }
 
 // loadPrivateKey loads ED25519 private key from path.
-func loadPrivateKey(ctx context.Context, privateKeyPath string) (ed25519.PrivateKey, error) {
+func loadPrivateKey(privateKeyPath string) (ed25519.PrivateKey, error) {
 	keyFile, err := os.Open(filepath.Clean(privateKeyPath))
 	if err != nil {
 		return nil, fmt.Errorf("error opening private key file: %w", err)
@@ -83,7 +82,7 @@ func loadPrivateKey(ctx context.Context, privateKeyPath string) (ed25519.Private
 	defer func() {
 		closeErr := keyFile.Close()
 		if closeErr != nil {
-			logging.LoggerFromCtx(ctx).Println(closeErr)
+			log.Println(closeErr)
 		}
 	}()
 
@@ -104,12 +103,12 @@ func loadPrivateKey(ctx context.Context, privateKeyPath string) (ed25519.Private
 }
 
 // GetPrivateKey returns private key value from the loaded configuration.
-func (s Configuration) GetPrivateKey(ctx context.Context) (ed25519.PrivateKey, error) {
+func (s Configuration) GetPrivateKey() (ed25519.PrivateKey, error) {
 	if len(s.privateKey) > 0 {
 		return s.privateKey, nil
 	}
 
-	privateKey, err := loadPrivateKey(ctx, s.PrivateKeyPath)
+	privateKey, err := loadPrivateKey(s.PrivateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("error getting loading private key: %w", err)
 	}

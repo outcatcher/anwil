@@ -2,9 +2,7 @@
 
 package logging
 
-import "log"
-
-// GetDefaultLogger returns default stdout logger.
-func GetDefaultLogger() *log.Logger {
-	return log.Default()
+// GetDefaultLogWriter returns writer to stdout.
+func GetDefaultLogWriter() io.Writer {
+	return os.Stdout
 }
