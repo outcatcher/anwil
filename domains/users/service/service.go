@@ -43,7 +43,7 @@ func (u *service) UseLogger(logger *log.Logger) {
 	u.log = logger
 }
 
-// DependsOn defines services service service depends on.
+// DependsOn defines services the users service depends on.
 func (*service) DependsOn() []svcSchema.ServiceID {
 	return []svcSchema.ServiceID{}
 }
