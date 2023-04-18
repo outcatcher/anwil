@@ -7,18 +7,22 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/core/validation"
-	"github.com/outcatcher/anwil/domains/users/service/schema"
+	users "github.com/outcatcher/anwil/domains/users/service"
+	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 // AddUserHandlers - adds user-related endpoints.
-func AddUserHandlers(state schema.WithUsers) services.AddHandlersFunc {
+func AddUserHandlers(state svcSchema.ProvidingServices) svcSchema.AddHandlersFunc {
 	return func(baseGroup, secGroup *echo.Group) error {
-		users := state.Users()
+		userService, err := svcSchema.GetServiceFromProvider[*users.Service](state, usersSchema.ServiceUsers)
+		if err != nil {
+			return fmt.Errorf("error adding user hanlders: %w", err)
+		}
 
-		baseGroup.POST("/login", handleAuthorize(users))
-		baseGroup.POST("/wisher", handleUserRegister(users))
+		baseGroup.POST("/login", handleAuthorize(userService))
+		baseGroup.POST("/wisher", handleUserRegister(userService))
 
 		return nil
 	}

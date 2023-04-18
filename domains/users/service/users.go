@@ -14,7 +14,7 @@ import (
 )
 
 // GetUser returns user data by username.
-func (u *users) GetUser(ctx context.Context, username string) (*dto.User, error) {
+func (u *Service) GetUser(ctx context.Context, username string) (*dto.User, error) {
 	user, err := u.storage.GetUser(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user: %w", err)
@@ -30,7 +30,7 @@ func (u *users) GetUser(ctx context.Context, username string) (*dto.User, error)
 // SaveUser saves new user data.
 //
 // user.Password expected to be not encrypted.
-func (u *users) SaveUser(ctx context.Context, user dto.User) error {
+func (u *Service) SaveUser(ctx context.Context, user dto.User) error {
 	if err := password.CheckRequirements(user.Password); err != nil {
 		return fmt.Errorf("error saving user: %w", err)
 	}
@@ -63,7 +63,7 @@ func (u *users) SaveUser(ctx context.Context, user dto.User) error {
 }
 
 // GenerateUserToken validates user credentials and returns token.
-func (u *users) GenerateUserToken(ctx context.Context, user dto.User) (string, error) {
+func (u *Service) GenerateUserToken(ctx context.Context, user dto.User) (string, error) {
 	existing, err := u.GetUser(ctx, user.Username)
 	if errors.Is(err, services.ErrNotFound) {
 		return "", fmt.Errorf("user %s: %w", user.Username, services.ErrNotFound)

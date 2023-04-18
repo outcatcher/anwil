@@ -18,7 +18,8 @@ import (
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
 
-type users struct {
+// Service - users service.
+type Service struct {
 	cfg     *configSchema.Configuration
 	storage userStorage.UserStorage
 
@@ -28,32 +29,32 @@ type users struct {
 }
 
 // UseConfig attaches configuration to the service.
-func (u *users) UseConfig(configuration *configSchema.Configuration) {
+func (u *Service) UseConfig(configuration *configSchema.Configuration) {
 	u.cfg = configuration
 }
 
 // UseStorage attaches given DB storage to the service.
-func (u *users) UseStorage(db storageSchema.QueryExecutor) {
+func (u *Service) UseStorage(db storageSchema.QueryExecutor) {
 	u.storage = userStorage.New(db)
 }
 
 // UseLogger attaches logger to the service.
-func (u *users) UseLogger(logger *log.Logger) {
+func (u *Service) UseLogger(logger *log.Logger) {
 	u.log = logger
 }
 
-// DependsOn defines services Users service depends on.
-func (*users) DependsOn() []svcSchema.ServiceID {
+// DependsOn defines services Service service depends on.
+func (*Service) DependsOn() []svcSchema.ServiceID {
 	return []svcSchema.ServiceID{}
 }
 
-// ID returns  users service ID.
-func (*users) ID() svcSchema.ServiceID {
+// ID returns service ID.
+func (*Service) ID() svcSchema.ServiceID {
 	return schema.ServiceUsers
 }
 
 // Init initialized user instance with given state.
-func (u *users) Init(_ context.Context, state interface{}) error {
+func (u *Service) Init(_ context.Context, state interface{}) error {
 	err := services.InjectServiceWith(
 		u, state,
 		storageSchema.StorageInject,
@@ -72,9 +73,4 @@ func (u *users) Init(_ context.Context, state interface{}) error {
 	u.privateKey = key
 
 	return nil
-}
-
-// New returns not initialized instance of users service.
-func New() schema.Service {
-	return new(users)
 }

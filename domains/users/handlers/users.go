@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	users "github.com/outcatcher/anwil/domains/users/dto"
-	"github.com/outcatcher/anwil/domains/users/service/schema"
+	"github.com/outcatcher/anwil/domains/users/service"
 )
 
 type createUser struct {
@@ -15,7 +15,7 @@ type createUser struct {
 	FullName string `json:"full_name"`
 }
 
-func handleUserRegister(usr schema.Service) echo.HandlerFunc {
+func handleUserRegister(usr *service.Service) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
 		req := new(createUser)

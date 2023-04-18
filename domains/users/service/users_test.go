@@ -22,7 +22,7 @@ const (
 type UsersSuite struct {
 	suite.Suite
 
-	users users
+	users Service
 }
 
 func (s *UsersSuite) SetupSuite() {
@@ -31,7 +31,7 @@ func (s *UsersSuite) SetupSuite() {
 	key, err := hex.DecodeString(privateKey)
 	require.NoError(t, err)
 
-	userService := users{
+	userService := Service{
 		storage:    storage.NewMock(),
 		privateKey: key,
 	}

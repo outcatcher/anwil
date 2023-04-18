@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	users "github.com/outcatcher/anwil/domains/users/dto"
-	"github.com/outcatcher/anwil/domains/users/service/schema"
+	"github.com/outcatcher/anwil/domains/users/service"
 )
 
 type credentialsRequest struct {
@@ -20,7 +20,7 @@ type jwtResponse struct {
 	Token string `json:"token"`
 }
 
-func handleAuthorize(usr schema.Service) echo.HandlerFunc {
+func handleAuthorize(usr *service.Service) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := new(credentialsRequest)
 
