@@ -1,4 +1,4 @@
-package password
+package service
 
 import (
 	"crypto/rand"
@@ -18,13 +18,13 @@ func TestPasswordWorkflow(t *testing.T) {
 
 	inputPassword := "truly-random-password"
 
-	encrypted, err := Encrypt(inputPassword, randomBytes)
+	encrypted, err := encrypt(inputPassword, randomBytes)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, encrypted)
 	require.Len(t, encrypted, 128) // sha512 encrypted string is 128 bytes long
 
-	require.NoError(t, Validate(inputPassword, encrypted, randomBytes))
+	require.NoError(t, validatePassword(inputPassword, encrypted, randomBytes))
 }
 
 func TestValidate_invalid(t *testing.T) {
@@ -37,26 +37,26 @@ func TestValidate_invalid(t *testing.T) {
 
 	inputPassword := "truly-random-password"
 
-	encrypted, err := Encrypt(inputPassword, randomBytes)
+	encrypted, err := encrypt(inputPassword, randomBytes)
 	require.NoError(t, err)
 
 	require.NotEmpty(t, encrypted)
 	require.Len(t, encrypted, 128) // sha512 encrypted string is 128 bytes long
 
-	err = Validate(inputPassword+"no!", encrypted, randomBytes)
+	err = validatePassword(inputPassword+"no!", encrypted, randomBytes)
 	require.ErrorIs(t, err, services.ErrUnauthorized)
 }
 
 func TestEncode_noSecret(t *testing.T) {
 	t.Parallel()
 
-	_, err := Encrypt("", nil)
+	_, err := encrypt("", nil)
 	require.ErrorIs(t, err, errMissingPrivateKey)
 }
 
 func TestValidate_noSecret(t *testing.T) {
 	t.Parallel()
 
-	err := Validate("", "", nil)
+	err := validatePassword("", "", nil)
 	require.ErrorIs(t, err, errMissingPrivateKey)
 }

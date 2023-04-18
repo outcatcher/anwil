@@ -4,7 +4,7 @@ import (
 	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
-	"github.com/outcatcher/anwil/domains/users/token"
+	"github.com/outcatcher/anwil/domains/users/service"
 )
 
 const (
@@ -25,7 +25,7 @@ func JWTAuth(state schema.WithConfig) echo.MiddlewareFunc {
 		return echojwt.WithConfig(echojwt.Config{
 			ContextKey:     contextKeyUsername,
 			SigningKey:     pKey,
-			KeyFunc:        token.Ed25519KeyFunc(pKey.Public()),
+			KeyFunc:        service.Ed25519KeyFunc(pKey.Public()),
 			ParseTokenFunc: nil,
 		})(n)
 	}

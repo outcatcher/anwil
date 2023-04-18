@@ -6,21 +6,18 @@ import (
 	"fmt"
 
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
-	"github.com/outcatcher/anwil/domains/users/dto"
-	"github.com/outcatcher/anwil/domains/users/password"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/outcatcher/anwil/domains/users/storage"
-	"github.com/outcatcher/anwil/domains/users/token"
 )
 
 // GetUser returns user data by username.
-func (u *Service) GetUser(ctx context.Context, username string) (*dto.User, error) {
+func (u *service) GetUser(ctx context.Context, username string) (*schema.User, error) {
 	user, err := u.storage.GetUser(ctx, username)
 	if err != nil {
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
-	return &dto.User{
+	return &schema.User{
 		Username: user.Username,
 		Password: user.Password,
 		FullName: user.FullName,
@@ -30,12 +27,12 @@ func (u *Service) GetUser(ctx context.Context, username string) (*dto.User, erro
 // SaveUser saves new user data.
 //
 // user.Password expected to be not encrypted.
-func (u *Service) SaveUser(ctx context.Context, user dto.User) error {
-	if err := password.CheckRequirements(user.Password); err != nil {
+func (u *service) SaveUser(ctx context.Context, user schema.User) error {
+	if err := checkRequirements(user.Password); err != nil {
 		return fmt.Errorf("error saving user: %w", err)
 	}
 
-	pwd, err := password.Encrypt(user.Password, u.privateKey)
+	pwd, err := encrypt(user.Password, u.privateKey)
 	if err != nil {
 		return fmt.Errorf("error encrypting new user password: %w", err)
 	}
@@ -63,7 +60,7 @@ func (u *Service) SaveUser(ctx context.Context, user dto.User) error {
 }
 
 // GenerateUserToken validates user credentials and returns token.
-func (u *Service) GenerateUserToken(ctx context.Context, user dto.User) (string, error) {
+func (u *service) GenerateUserToken(ctx context.Context, user schema.User) (string, error) {
 	existing, err := u.GetUser(ctx, user.Username)
 	if errors.Is(err, services.ErrNotFound) {
 		return "", fmt.Errorf("user %s: %w", user.Username, services.ErrNotFound)
@@ -73,12 +70,12 @@ func (u *Service) GenerateUserToken(ctx context.Context, user dto.User) (string,
 		return "", fmt.Errorf("error retreating user: %w", err)
 	}
 
-	err = password.Validate(user.Password, existing.Password, u.privateKey)
+	err = validatePassword(user.Password, existing.Password, u.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("error validating user credentials: %w", err)
 	}
 
-	tok, err := token.Generate(&schema.Claims{Username: user.Username}, u.privateKey)
+	tok, err := Generate(&schema.Claims{Username: user.Username}, u.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("error generating user token: %w", err)
 	}

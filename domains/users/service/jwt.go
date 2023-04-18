@@ -1,7 +1,4 @@
-/*
-Package token contains JWT-related operations
-*/
-package token
+package service
 
 import (
 	"crypto"
@@ -35,8 +32,8 @@ func Ed25519KeyFunc(key crypto.PublicKey) jwt.Keyfunc {
 	}
 }
 
-// Validate validates token and return JWT payload data.
-func Validate(tokenString string, key crypto.PublicKey) (*schema.Claims, error) {
+// validateToken validates token and return JWT payload data.
+func validateToken(tokenString string, key crypto.PublicKey) (*schema.Claims, error) {
 	claims := new(schema.Claims)
 
 	_, err := jwt.ParseWithClaims(tokenString, claims, Ed25519KeyFunc(key))

@@ -1,4 +1,4 @@
-package token
+package service
 
 import (
 	"crypto"
@@ -14,9 +14,6 @@ import (
 )
 
 const (
-	privateKey = "e3de69265ea200c17633b8b7ba90c17c15e96f3f1d0ad608d9f628e515c7e53b" +
-		"d6507afe638ea0565709842d869581edfc5e5b6186a8215f6bed2504991ff9fb"
-
 	// token with claims:
 	// &Claims{Username: "random-username"}.
 	token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9." +
@@ -77,7 +74,7 @@ func (s *AuthTests) TestValidateToken() {
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		claims, err := Validate(token, s.publicKey)
+		claims, err := validateToken(token, s.publicKey)
 		require.NoError(t, err)
 		require.Equal(t, "random-username", claims.Username)
 	})
@@ -89,7 +86,7 @@ func (s *AuthTests) TestValidateToken() {
 			"8935b0786ec428ede4c0d6cba5d12fe166c67b660177f879a4bb750ee67dceec1b624eee")
 		require.NoError(t, err)
 
-		_, err = Validate(token, ed25519.PrivateKey(privateKey).Public())
+		_, err = validateToken(token, ed25519.PrivateKey(privateKey).Public())
 		require.ErrorIs(t, err, jwt.ErrTokenSignatureInvalid)
 		require.ErrorIs(t, err, services.ErrUnauthorized)
 	})
@@ -102,7 +99,7 @@ func (s *AuthTests) TestValidateToken() {
 		signedString, err := tok.SignedString([]byte(s.privateKey))
 		require.NoError(t, err)
 
-		_, err = Validate(signedString, s.publicKey)
+		_, err = validateToken(signedString, s.publicKey)
 		require.ErrorIs(t, err, schema.ErrUnexpectedSignMethod)
 		require.ErrorIs(t, err, services.ErrUnauthorized)
 	})

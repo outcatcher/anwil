@@ -7,8 +7,7 @@ import (
 
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
-	"github.com/outcatcher/anwil/domains/users/dto"
-	"github.com/outcatcher/anwil/domains/users/password"
+	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/outcatcher/anwil/domains/users/storage"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -22,7 +21,7 @@ const (
 type UsersSuite struct {
 	suite.Suite
 
-	users Service
+	users service
 }
 
 func (s *UsersSuite) SetupSuite() {
@@ -31,7 +30,7 @@ func (s *UsersSuite) SetupSuite() {
 	key, err := hex.DecodeString(privateKey)
 	require.NoError(t, err)
 
-	userService := Service{
+	userService := service{
 		storage:    storage.NewMock(),
 		privateKey: key,
 	}
@@ -48,7 +47,7 @@ func TestUsers(t *testing.T) {
 func (s *UsersSuite) requireEqualPasswords(raw, encrypted string) {
 	s.T().Helper()
 
-	require.NoError(s.T(), password.Validate(raw, encrypted, s.users.privateKey))
+	require.NoError(s.T(), validatePassword(raw, encrypted, s.users.privateKey))
 }
 
 func (s *UsersSuite) TestUsers_GetUser() {
@@ -92,7 +91,7 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 	t.Run("no user", func(t *testing.T) {
 		t.Parallel()
 
-		expectedUser := dto.User{
+		expectedUser := schema.User{
 			Username: th.RandomString("user", 10),
 			Password: th.RandomString("pwd", 10),
 			FullName: th.RandomString("full", 10),
@@ -120,7 +119,7 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 		err := s.users.storage.InsertUser(ctx, expectedUser)
 		require.NoError(t, err)
 
-		err = s.users.SaveUser(ctx, dto.User{
+		err = s.users.SaveUser(ctx, schema.User{
 			Username: expectedUser.Username,
 			Password: th.RandomString("pwd", 20),
 		})
@@ -128,11 +127,11 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 	})
 }
 
-func (s *UsersSuite) createTestUser(ctx context.Context) dto.User {
+func (s *UsersSuite) createTestUser(ctx context.Context) schema.User {
 	t := s.T()
 	t.Helper()
 
-	testUser := dto.User{
+	testUser := schema.User{
 		Username: th.RandomString("usr-", 5),
 		Password: th.RandomString("pwd-", 20),
 		FullName: "Test User",
@@ -153,7 +152,7 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() {
 	t.Run("invalid user", func(t *testing.T) {
 		t.Parallel()
 
-		token, err := s.users.GenerateUserToken(ctx, dto.User{})
+		token, err := s.users.GenerateUserToken(ctx, schema.User{})
 		require.ErrorIs(t, err, services.ErrNotFound)
 		require.Empty(t, token)
 	})

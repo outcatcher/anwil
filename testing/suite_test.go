@@ -30,8 +30,6 @@ import (
 	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/storage"
-	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
-	userService "github.com/outcatcher/anwil/domains/users/service"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -265,10 +263,10 @@ func waitForDBUp(ctx context.Context, t *testing.T, dockerClient *client.Client,
 func createDebugUser(ctx context.Context, t *testing.T, state svcSchema.ProvidingServices) {
 	t.Helper()
 
-	users, err := svcSchema.GetServiceFromProvider[*userService.Service](state, usersSchema.ServiceUsers)
+	users, err := svcSchema.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
 	require.NoError(t, err)
 
-	err = users.SaveUser(ctx, usersDTO.User{
+	err = users.SaveUser(ctx, usersSchema.User{
 		Username: debugUsername,
 		Password: debugPassword,
 		FullName: debugFullName,

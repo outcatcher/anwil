@@ -120,7 +120,7 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 		storage: db,
 	}
 
-	apiState.WithServices(new(users.Service))
+	apiState.WithServices(users.New())
 
 	initialized, err := services.Initialize(ctx, apiState, apiState.services)
 	if err != nil {
