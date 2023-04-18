@@ -1,4 +1,4 @@
-//go:build acceptance
+//go:build integration
 
 package testing
 
