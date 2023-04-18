@@ -1,7 +1,4 @@
-/*
-Package password contains password-related functions
-*/
-package password
+package service
 
 import (
 	"crypto/hmac"
@@ -15,9 +12,11 @@ import (
 	pwdValidator "github.com/wagslane/go-password-validator"
 )
 
+const minEntropy = 50
+
 var errMissingPrivateKey = errors.New("missing encryption key")
 
-func encrypt(src string, key []byte) ([]byte, error) {
+func encryptBytes(src string, key []byte) ([]byte, error) {
 	if len(key) == 0 {
 		return nil, fmt.Errorf("error encrypting password: %w", errMissingPrivateKey)
 	}
@@ -32,9 +31,9 @@ func encrypt(src string, key []byte) ([]byte, error) {
 	return hmc.Sum(nil), nil
 }
 
-// Encrypt encrypts password with a private key.
-func Encrypt(src string, key []byte) (string, error) {
-	encrypted, err := encrypt(src, key)
+// encrypt encrypts password with a private key.
+func encrypt(src string, key []byte) (string, error) {
+	encrypted, err := encryptBytes(src, key)
 	if err != nil {
 		return "", err
 	}
@@ -42,14 +41,14 @@ func Encrypt(src string, key []byte) (string, error) {
 	return hex.EncodeToString(encrypted), nil
 }
 
-// Validate compares given password to be equal with a given encrypted password.
-func Validate(input, encrypted string, key []byte) error {
+// validatePassword compares given password to be equal with a given encrypted password.
+func validatePassword(input, encrypted string, key []byte) error {
 	macCompared, err := hex.DecodeString(encrypted)
 	if err != nil {
 		return fmt.Errorf("error decoding encrypted password: %w", err)
 	}
 
-	macInput, err := encrypt(input, key)
+	macInput, err := encryptBytes(input, key)
 	if err != nil {
 		return err
 	}
@@ -61,10 +60,8 @@ func Validate(input, encrypted string, key []byte) error {
 	return nil
 }
 
-const minEntropy = 50
-
-// CheckRequirements validates password strength requirements.
-func CheckRequirements(password string) error {
+// checkRequirements validates password strength requirements.
+func checkRequirements(password string) error {
 	err := pwdValidator.Validate(password, minEntropy)
 	if err != nil {
 		return fmt.Errorf("%w: %w", validation.ErrValidationFailed, err)

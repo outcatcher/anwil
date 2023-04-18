@@ -13,7 +13,6 @@ import (
 	logSchema "github.com/outcatcher/anwil/domains/core/logging/schema"
 	services "github.com/outcatcher/anwil/domains/core/services/schema"
 	userHandlers "github.com/outcatcher/anwil/domains/users/handlers"
-	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 func handleStatic(engine *echo.Echo, basePath string) {
@@ -22,7 +21,7 @@ func handleStatic(engine *echo.Echo, basePath string) {
 
 type handlersState interface {
 	logSchema.WithLogger
-	schema.WithUsers
+	services.ProvidingServices
 	configSchema.WithConfig
 }
 

@@ -5,7 +5,12 @@ package schema
 
 import (
 	"context"
+	"errors"
+	"fmt"
 )
+
+// ErrInvalidType - error casting general service to exact type.
+var ErrInvalidType = errors.New("invalid service type")
 
 // ServiceID - ID of the service.
 type ServiceID string
@@ -27,3 +32,22 @@ type Service interface {
 
 // ServiceMapping - ServiceID to Service mapping.
 type ServiceMapping map[ServiceID]Service
+
+// ProvidingServices describes provider of the services.
+type ProvidingServices interface {
+	Service(id ServiceID) Service
+}
+
+// GetServiceFromProvider returns service of exact type by ID.
+func GetServiceFromProvider[T Service](p ProvidingServices, id ServiceID) (T, error) {
+	rawService := p.Service(id)
+
+	var svc T
+
+	svc, ok := rawService.(T)
+	if !ok {
+		return svc, fmt.Errorf("%w: actual service type %T", ErrInvalidType, rawService)
+	}
+
+	return svc, nil
+}

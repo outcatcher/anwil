@@ -1,4 +1,4 @@
-//go:build acceptance
+//go:build integration
 
 package testing
 
@@ -27,9 +27,9 @@ import (
 	"github.com/outcatcher/anwil/domains/core/config"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
+	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/storage"
-	usersDTO "github.com/outcatcher/anwil/domains/users/dto"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -44,9 +44,7 @@ const (
 	debugFullName = "Debug Wisher"
 )
 
-var (
-	debugPassword = th.RandomString("pWd!", 15)
-)
+var debugPassword = th.RandomString("pWd!", 15)
 
 type mapBody map[string]interface{}
 
@@ -54,7 +52,6 @@ type mapBody map[string]interface{}
 type AnwilSuite struct {
 	suite.Suite
 
-	log        *log.Logger
 	apiHandler http.HandlerFunc
 }
 
@@ -87,7 +84,7 @@ func (s *AnwilSuite) requestJSON(
 		headers = make(map[string]string)
 	}
 
-	headers["content-type"] = echo.MIMEApplicationJSON
+	headers[echo.HeaderContentType] = echo.MIMEApplicationJSON
 
 	return s.request(method, url, reader, headers)
 }
@@ -130,18 +127,18 @@ func (s *AnwilSuite) SetupSuite() {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	startDBContainer(t, ctx, cfg.DB)
+	startDBContainer(ctx, t, cfg.DB)
 	require.NoError(t, storage.ApplyMigrations(cfg.DB))
 
 	apiState, err := api.Init(ctx, configPath)
 	require.NoError(t, err)
 
-	createDebugUser(t, ctx, apiState)
+	createDebugUser(ctx, t, apiState)
 
 	srv, err := apiState.Server(ctx)
 	require.NoError(t, err)
 
-	// gin engine as a handler function.
+	// Using echo engine as a handler function.
 	// Note that context is not passed when using handler this way.
 	// This is not equivalent to starting server with Serve.
 	s.apiHandler = srv.Handler.ServeHTTP
@@ -157,8 +154,8 @@ func mapToSlice(src map[string]string) []string {
 	return result
 }
 
-func startDBContainer(
-	t *testing.T, ctx context.Context, dbConfig schema.DatabaseConfiguration,
+func startDBContainer( //nolint:funlen
+	ctx context.Context, t *testing.T, dbConfig schema.DatabaseConfiguration,
 ) {
 	t.Helper()
 
@@ -231,10 +228,10 @@ func startDBContainer(
 
 	time.Sleep(containerStartPeriod) // wait for healthcheck to be working
 
-	waitForDBUp(t, ctx, dockerClient, created.ID)
+	waitForDBUp(ctx, t, dockerClient, created.ID)
 }
 
-func waitForDBUp(t *testing.T, ctx context.Context, dockerClient *client.Client, containerID string) {
+func waitForDBUp(ctx context.Context, t *testing.T, dockerClient *client.Client, containerID string) {
 	t.Helper()
 
 	require.NotNil(t, dockerClient)
@@ -263,8 +260,13 @@ func waitForDBUp(t *testing.T, ctx context.Context, dockerClient *client.Client,
 	}
 }
 
-func createDebugUser(t *testing.T, ctx context.Context, state usersSchema.WithUsers) {
-	err := state.Users().SaveUser(ctx, usersDTO.User{
+func createDebugUser(ctx context.Context, t *testing.T, state svcSchema.ProvidingServices) {
+	t.Helper()
+
+	users, err := svcSchema.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
+	require.NoError(t, err)
+
+	err = users.SaveUser(ctx, usersSchema.User{
 		Username: debugUsername,
 		Password: debugPassword,
 		FullName: debugFullName,

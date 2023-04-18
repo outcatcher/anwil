@@ -21,7 +21,6 @@ import (
 	"github.com/outcatcher/anwil/domains/storage"
 	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
 	users "github.com/outcatcher/anwil/domains/users/service"
-	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
 const defaultTimeout = time.Minute
@@ -94,9 +93,9 @@ func (s *State) Config() *configSchema.Configuration {
 	return s.cfg
 }
 
-// Users service.
-func (s *State) Users() usersSchema.Service {
-	return s.services[usersSchema.ServiceUsers].(usersSchema.Service) //nolint:forcetypeassert
+// Service returns exact service instance by ID.
+func (s *State) Service(id svcSchema.ServiceID) svcSchema.Service {
+	return s.services[id]
 }
 
 // Storage returns shared query executor (i.e. *sqlx.DB).

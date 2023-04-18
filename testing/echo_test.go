@@ -1,4 +1,4 @@
-//go:build acceptance
+//go:build integration
 
 package testing
 
@@ -57,6 +57,7 @@ func addAuthHeader(token string, src map[string]string) map[string]string {
 	}
 
 	src["Authorization"] = fmt.Sprintf("Bearer %s", token)
+
 	return src
 }
 

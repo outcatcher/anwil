@@ -13,8 +13,8 @@ import (
 	"github.com/labstack/echo/v4"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
+	"github.com/outcatcher/anwil/domains/users/service"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
-	"github.com/outcatcher/anwil/domains/users/token"
 	"github.com/stretchr/testify/require"
 )
 
@@ -89,7 +89,7 @@ func TestJWTAuth_200(t *testing.T) {
 
 	username := th.RandomString("user-", 5)
 
-	tok, err := token.Generate(&schema.Claims{Username: username}, state.pKey)
+	tok, err := service.Generate(&schema.Claims{Username: username}, state.pKey)
 	require.NoError(t, err)
 
 	req.Header.Set(echo.HeaderAuthorization, fmt.Sprintf("%s %s", "Bearer", tok))
