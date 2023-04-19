@@ -35,7 +35,7 @@ func main() {
 
 	cfg, err := config.LoadServerConfiguration(ctx, configPath)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 
 	if err := storage.ApplyMigrations(cfg.DB, *argCommand); err != nil {
