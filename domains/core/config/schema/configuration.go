@@ -17,8 +17,6 @@ import (
 	"github.com/outcatcher/anwil/domains/core/services"
 )
 
-const encodedPrivateKeyLen = 128
-
 // WithConfig can return configuration.
 type WithConfig interface {
 	// Config returns used configuration.
@@ -86,16 +84,10 @@ func loadPrivateKey(privateKeyPath string) (ed25519.PrivateKey, error) {
 		}
 	}()
 
-	// reading with fixed size allows file to have \n or \r\n after key data
-	keyData := make([]byte, encodedPrivateKeyLen)
+	decodedData := make([]byte, ed25519.PrivateKeySize)
 
-	_, err = io.ReadFull(keyFile, keyData)
+	_, err = io.ReadFull(hex.NewDecoder(keyFile), decodedData)
 	if err != nil {
-		return nil, fmt.Errorf("error reading private key file: %w", err)
-	}
-
-	decodedData := make([]byte, hex.DecodedLen(len(keyData)))
-	if _, err := hex.Decode(decodedData, keyData); err != nil {
 		return nil, fmt.Errorf("error decoding loaded key file: %w", err)
 	}
 

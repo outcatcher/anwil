@@ -18,6 +18,7 @@ func (u *service) GetUser(ctx context.Context, username string) (*schema.User, e
 	}
 
 	return &schema.User{
+		UUID:     user.UUID,
 		Username: user.Username,
 		Password: user.Password,
 		FullName: user.FullName,
@@ -75,7 +76,12 @@ func (u *service) GenerateUserToken(ctx context.Context, user schema.User) (stri
 		return "", fmt.Errorf("error validating user credentials: %w", err)
 	}
 
-	tok, err := Generate(&schema.Claims{Username: user.Username}, u.privateKey)
+	jwtClaims := &schema.Claims{
+		Username: user.Username,
+		UserUUID: user.Username,
+	}
+
+	tok, err := Generate(jwtClaims, u.privateKey)
 	if err != nil {
 		return "", fmt.Errorf("error generating user token: %w", err)
 	}
