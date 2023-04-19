@@ -19,6 +19,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 
 	Username string `json:"username"`
+	UserUUID string `json:"user_uuid"`
 }
 
 var (
@@ -39,12 +40,8 @@ type UserService interface {
 
 // User holds user data.
 type User struct {
+	UUID     string `json:"uuid"`
 	Username string `json:"username"`
 	Password string `json:"-"` // hex-encoded password, make sure it's not reaching JSON
 	FullName string `json:"full_name"`
-}
-
-// JWTClaims contains data stored in JWT.
-type JWTClaims struct {
-	Username string `json:"username"`
 }

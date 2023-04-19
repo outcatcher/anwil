@@ -18,6 +18,8 @@ func main() {
 	log.SetOutput(logging.GetDefaultLogWriter()) // for subsequent goose calls
 
 	argConfigPath := flag.String("config", "", "Configuration path")
+	argCommand := flag.String("command", "up", "Command for goose to execute")
+
 	flag.Parse()
 
 	if *argConfigPath == "" {
@@ -33,10 +35,10 @@ func main() {
 
 	cfg, err := config.LoadServerConfiguration(ctx, configPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
 
-	if err := storage.ApplyMigrations(cfg.DB); err != nil {
+	if err := storage.ApplyMigrations(cfg.DB, *argCommand); err != nil {
 		log.Fatal(err)
 	}
 }

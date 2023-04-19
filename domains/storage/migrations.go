@@ -9,7 +9,7 @@ import (
 )
 
 // ApplyMigrations applies all available migrations.
-func ApplyMigrations(cfg config.DatabaseConfiguration) error {
+func ApplyMigrations(cfg config.DatabaseConfiguration, command string) error {
 	if err := goose.SetDialect(dbDriver); err != nil {
 		return fmt.Errorf("error selecting dialect for migrations: %w", err)
 	}
@@ -27,7 +27,7 @@ func ApplyMigrations(cfg config.DatabaseConfiguration) error {
 		return fmt.Errorf("error getting abs path for %s: %w", migrationsPath, err)
 	}
 
-	if err := goose.Up(db.DB, absPath, goose.WithAllowMissing()); err != nil {
+	if err := goose.RunWithOptions(command, db.DB, absPath, nil); err != nil {
 		return fmt.Errorf("error applying migrations: %w", err)
 	}
 

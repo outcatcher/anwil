@@ -15,10 +15,11 @@ import (
 
 const (
 	// token with claims:
-	// &Claims{Username: "random-username"}.
+	// &Claims{Username: "random-username", UserUUID: "8738ec06-7aa8-44b3-90d4-baaaf261c968"}.
 	token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9." +
-		"eyJ1c2VybmFtZSI6InJhbmRvbS11c2VybmFtZSJ9." +
-		"nVxpOGoHA9cggY3yGY9RJdZLYdPYnkBTClfG5HTLtLA4uEUKz5tdjlKvGHr0DkT9AVq1tiaC1SxC1ICcV4wECg"
+		"eyJpc3MiOiJhbndpbCIsImV4cCI6MTY4NDQ5NjY1MSwiaWF0IjoxNjgxOTA0NjUxLCJ1c2VybmFtZSI6InJhbmRvbS11c2" +
+		"VybmFtZSIsInVzZXJfdXVpZCI6Ijg3MzhlYzA2LTdhYTgtNDRiMy05MGQ0LWJhYWFmMjYxYzk2OCJ9." +
+		"EWf57iXIFMwEr2gsFmjDiL2bYai8_1PXv9mIap411twj2-F4VPIFxv3PAeyWWKfRw-qU4RGCahuQ9CM3bD9CBg"
 )
 
 type AuthTests struct {
@@ -43,7 +44,7 @@ func (s *AuthTests) TestGenerateToken() {
 	t.Run("w/ claims", func(t *testing.T) {
 		t.Parallel()
 
-		claims := &schema.Claims{Username: "random-username"}
+		claims := &schema.Claims{Username: "random-username", UserUUID: "8738ec06-7aa8-44b3-90d4-baaaf261c968"}
 
 		tok, err := Generate(claims, s.privateKey)
 		require.NoError(t, err)
@@ -77,6 +78,7 @@ func (s *AuthTests) TestValidateToken() {
 		claims, err := validateToken(token, s.publicKey)
 		require.NoError(t, err)
 		require.Equal(t, "random-username", claims.Username)
+		require.Equal(t, "8738ec06-7aa8-44b3-90d4-baaaf261c968", claims.UserUUID)
 	})
 
 	t.Run("invalid key", func(t *testing.T) {

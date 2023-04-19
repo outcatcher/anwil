@@ -128,7 +128,7 @@ func (s *AnwilSuite) SetupSuite() {
 	require.NotNil(t, cfg)
 
 	startDBContainer(ctx, t, cfg.DB)
-	require.NoError(t, storage.ApplyMigrations(cfg.DB))
+	require.NoError(t, storage.ApplyMigrations(cfg.DB, "up"))
 
 	apiState, err := api.Init(ctx, configPath)
 	require.NoError(t, err)
