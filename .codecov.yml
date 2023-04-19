@@ -1,3 +1,8 @@
 coverage:
   status:
     patch: off
+
+ignore:
+  - '**/*_mock.go'
+  - '**/*_test.go'
+  - '**/core/testhelpers'
