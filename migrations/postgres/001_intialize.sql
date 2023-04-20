@@ -17,4 +17,3 @@ CREATE TABLE wishers
 DROP TABLE wishers;
 
 DROP TYPE "role";
-

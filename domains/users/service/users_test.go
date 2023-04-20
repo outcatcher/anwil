@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ed25519"
 	"database/sql"
-	"database/sql/driver"
 	"encoding/hex"
 	"testing"
 
@@ -127,8 +126,6 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 			FullName: th.RandomString("full", 10),
 		}
 
-		result := driver.RowsAffected(1)
-
 		createdUser := &userStorage.Wisher{}
 
 		mockDB := new(th.MockDBExecutor)
@@ -144,7 +141,7 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 			Run(func(args mock.Arguments) {
 				*createdUser = args.Get(2).(userStorage.Wisher) //nolint:forcetypeassert
 			}).
-			Return(result, nil)
+			Return(th.MockSQLResult, nil)
 
 		err := s.newService(mockDB).SaveUser(ctx, expectedUser)
 		require.NoError(t, err)

@@ -3,6 +3,7 @@ package testhelpers
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/mock"
@@ -73,3 +74,13 @@ func (m *MockDBExecutor) ExecContext(ctx context.Context, query string, args ...
 
 	return mockArgs.Get(0).(sql.Result), mockArgs.Error(1)
 }
+
+// SelectContext mocks SelectContext.
+func (m *MockDBExecutor) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	mockArgs := m.Called(ctx, dest, query, args)
+
+	return mockArgs.Error(0)
+}
+
+// MockSQLResult is a mock sql.Result.
+var MockSQLResult = driver.RowsAffected(1)

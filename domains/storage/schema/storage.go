@@ -39,5 +39,6 @@ type QueryExecutor interface {
 	sqlx.ExtContext
 
 	GetContext(ctx context.Context, dest any, query string, args ...any) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
 }
