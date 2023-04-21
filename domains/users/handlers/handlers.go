@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/outcatcher/anwil/domains/core/services"
 	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	"github.com/outcatcher/anwil/domains/core/validation"
 	usersSchema "github.com/outcatcher/anwil/domains/users/service/schema"
@@ -15,7 +16,7 @@ import (
 // AddUserHandlers - adds user-related endpoints.
 func AddUserHandlers(state svcSchema.ProvidingServices) svcSchema.AddHandlersFunc {
 	return func(baseGroup, secGroup *echo.Group) error {
-		userService, err := svcSchema.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
+		userService, err := services.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
 		if err != nil {
 			return fmt.Errorf("error adding user hanlders: %w", err)
 		}

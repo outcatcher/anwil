@@ -43,39 +43,34 @@ func (u *service) UseLogger(logger *log.Logger) {
 	u.log = logger
 }
 
-// DependsOn defines services the users service depends on.
-func (*service) DependsOn() []svcSchema.ServiceID {
-	return []svcSchema.ServiceID{}
-}
+func userServiceInit(_ context.Context, state any) (any, error) {
+	svc := new(service)
 
-// ID returns service ID.
-func (*service) ID() svcSchema.ServiceID {
-	return schema.ServiceID
-}
-
-// Init initialized user instance with given state.
-func (u *service) Init(_ context.Context, state interface{}) error {
 	err := services.InjectServiceWith(
-		u, state,
+		svc, state,
 		storageSchema.StorageInject,
 		logSchema.LoggerInject,
 		configSchema.ConfigInject,
 	)
 	if err != nil {
-		return fmt.Errorf("error initializing user service: %w", err)
+		return nil, fmt.Errorf("error initializing user service: %w", err)
 	}
 
-	key, err := u.cfg.GetPrivateKey()
+	key, err := svc.cfg.GetPrivateKey()
 	if err != nil {
-		return fmt.Errorf("error initializing user service: %w", err)
+		return nil, fmt.Errorf("error initializing user service: %w", err)
 	}
 
-	u.privateKey = key
+	svc.privateKey = key
 
-	return nil
+	return svc, nil
 }
 
-// New returns new user service.
-func New() schema.UserService {
-	return new(service)
+// NewUserService returns new user service definition.
+func NewUserService() svcSchema.ServiceDefinition {
+	return svcSchema.ServiceDefinition{
+		ID:        schema.ServiceID,
+		Init:      userServiceInit,
+		DependsOn: nil,
+	}
 }

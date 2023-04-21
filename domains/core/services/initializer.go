@@ -13,7 +13,7 @@ import (
 
 var (
 	errCyclicServiceDependency = errors.New("service dependency cycle detected")
-	errServiceNotInState       = errors.New("service is missing in service map")
+	errDefinitionMissing       = errors.New("service definition is missing")
 
 	errNotNeeded   = errors.New("consumer not expecting injection")
 	errNotProvided = errors.New("provider doesn't provide injection")
@@ -22,51 +22,50 @@ var (
 type serviceState int
 
 const (
-	_ serviceState = iota
+	_ serviceState = iota // not started
 	serviceInProgress
 	serviceReady
 )
 
+// initializer is a helper storing initialization process state.
 type initializer struct {
-	state interface{}
+	state any
 
-	services      schema.ServiceMapping
-	serviceStates map[schema.ServiceID]serviceState
+	serviceDefinitions map[schema.ServiceID]schema.ServiceDefinition
+	services           map[schema.ServiceID]any
+	serviceStates      map[schema.ServiceID]serviceState
 }
 
 func (init *initializer) initWithDependencies(
 	ctx context.Context,
 	id schema.ServiceID,
 ) error {
-	svc, ok := init.services[id]
+	svc, ok := init.serviceDefinitions[id]
 	if !ok {
-		return fmt.Errorf("service %s: %w", id, errServiceNotInState) // impossible in current implementation
+		return fmt.Errorf("service %s: %w", id, errDefinitionMissing) // impossible in current implementation
 	}
 
-	svcState := init.serviceStates[id]
-
-	if svcState == serviceInProgress {
+	switch init.serviceStates[id] {
+	case serviceInProgress:
 		return fmt.Errorf("service %s: %w", id, errCyclicServiceDependency)
-	}
-
-	if svcState == serviceReady {
-		return nil // already initialized
+	case serviceReady:
+		return nil
 	}
 
 	init.serviceStates[id] = serviceInProgress
 
-	dependencies := svc.DependsOn()
-
-	for _, depID := range dependencies {
+	for _, depID := range svc.DependsOn {
 		if err := init.initWithDependencies(ctx, depID); err != nil {
 			return err
 		}
 	}
 
-	if err := svc.Init(ctx, init.state); err != nil {
+	initialized, err := svc.Init(ctx, init.state)
+	if err != nil {
 		return fmt.Errorf("error initializing service %s: %w", id, err)
 	}
 
+	init.services[id] = initialized
 	init.serviceStates[id] = serviceReady
 
 	return nil
@@ -78,16 +77,23 @@ func (init *initializer) initWithDependencies(
 //
 // State will be passed to each service in mapping `Init` method.
 func Initialize(
-	ctx context.Context, state interface{}, svcMapping schema.ServiceMapping,
+	ctx context.Context, state any, services ...schema.ServiceDefinition,
 ) (schema.ServiceMapping, error) {
-	initer := initializer{
-		state:         state,
-		services:      svcMapping,
-		serviceStates: make(map[schema.ServiceID]serviceState),
+	serviceDefMap := make(map[schema.ServiceID]schema.ServiceDefinition, len(services))
+
+	for _, def := range services {
+		serviceDefMap[def.ID] = def
 	}
 
-	for id := range svcMapping {
-		if err := initer.initWithDependencies(ctx, id); err != nil {
+	initer := initializer{
+		state:              state,
+		serviceDefinitions: serviceDefMap,
+		services:           make(map[schema.ServiceID]any, len(services)),
+		serviceStates:      make(map[schema.ServiceID]serviceState),
+	}
+
+	for _, service := range services {
+		if err := initer.initWithDependencies(ctx, service.ID); err != nil {
 			return nil, err
 		}
 	}
@@ -96,7 +102,7 @@ func Initialize(
 }
 
 // InjectFunc - function injecting something into service.
-type InjectFunc func(consumer, provider interface{}) error
+type InjectFunc func(consumer, provider any) error
 
 // ValidateArgInterfaces is a helper method to assert types of consumer and provider.
 //
@@ -134,7 +140,7 @@ func ValidateArgInterfaces[TCons any, TProv any](consumer, provider any) (TCons,
 //		configDTO.ConfigInject,
 //		logSchema.LoggerInject,
 //	)
-func InjectServiceWith(service schema.Service, state interface{}, injects ...InjectFunc) error {
+func InjectServiceWith(service, state any, injects ...InjectFunc) error {
 	for _, initFunc := range injects {
 		if err := initFunc(service, state); err != nil {
 			return fmt.Errorf("error intializing service: %w", err)

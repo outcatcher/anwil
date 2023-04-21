@@ -73,6 +73,7 @@ issues:
         - gomnd
     - path: .+_test\.go
       linters:
+        - funlen # we are grouping test by using subtests
         - bodyclose  # we use close it in a helper method
         - noctx
     - linters:

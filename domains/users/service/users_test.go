@@ -8,8 +8,9 @@ import (
 	"encoding/hex"
 	"testing"
 
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
+	"github.com/outcatcher/anwil/domains/core/validation"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 	"github.com/stretchr/testify/mock"
@@ -56,9 +57,10 @@ func (s *UsersSuite) newService(mockDB *th.MockDBExecutor) *service {
 	}
 }
 
-func setWisher(argIndex int, expectedUser userStorage.Wisher) func(args mock.Arguments) {
+// setWisher sets data of given wisher mocking GetContext behaviuor.
+func setWisher(expectedUser userStorage.Wisher) func(args mock.Arguments) {
 	return func(args mock.Arguments) {
-		*(args.Get(argIndex).(*userStorage.Wisher)) = expectedUser //nolint:forcetypeassert
+		*(args.Get(1).(*userStorage.Wisher)) = expectedUser //nolint:forcetypeassert
 	}
 }
 
@@ -71,7 +73,7 @@ func (s *UsersSuite) TestUsers_GetUser() {
 	t.Run("no user", func(t *testing.T) {
 		t.Parallel()
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
@@ -81,7 +83,7 @@ func (s *UsersSuite) TestUsers_GetUser() {
 		users := s.newService(mockDB)
 
 		_, err := users.GetUser(ctx, th.RandomString("user", 10))
-		require.ErrorIs(t, err, services.ErrNotFound)
+		require.ErrorIs(t, err, errbase.ErrNotFound)
 	})
 
 	t.Run("existing", func(t *testing.T) {
@@ -92,12 +94,12 @@ func (s *UsersSuite) TestUsers_GetUser() {
 			FullName: th.RandomString("full", 10),
 		}
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
-				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), []interface{}{expectedUser.Username},
+				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), []any{expectedUser.Username},
 			).
-			Run(setWisher(1, expectedUser)).
+			Run(setWisher(expectedUser)).
 			Return(nil)
 
 		users := s.newService(mockDB)
@@ -129,7 +131,7 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 
 		createdUser := &userStorage.Wisher{}
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
@@ -153,7 +155,7 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 	t.Run("existing user", func(t *testing.T) {
 		t.Parallel()
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
@@ -164,11 +166,39 @@ func (s *UsersSuite) TestUsers_SaveUser() {
 			Username: th.RandomString("username", 20),
 			Password: th.RandomString("pwd", 20),
 		})
-		require.ErrorIs(t, err, services.ErrConflict)
+		require.ErrorIs(t, err, errbase.ErrConflict)
+	})
+
+	t.Run("simple password", func(t *testing.T) {
+		t.Parallel()
+
+		mockDB := new(th.MockDBExecutor)
+
+		err := s.newService(mockDB).SaveUser(ctx, schema.User{
+			Username: th.RandomString("username", 20),
+			Password: th.RandomString("pwd", 1),
+		})
+		require.ErrorIs(t, err, validation.ErrValidationFailed)
+	})
+
+	t.Run("missing private key", func(t *testing.T) {
+		t.Parallel()
+
+		mockDB := new(th.MockDBExecutor)
+		users := &service{
+			storage:    userStorage.New(mockDB),
+			privateKey: nil,
+		}
+
+		err := users.SaveUser(ctx, schema.User{
+			Username: th.RandomString("username", 20),
+			Password: th.RandomString("pwd", 20),
+		})
+		require.ErrorIs(t, err, errMissingPrivateKey)
 	})
 }
 
-func (s *UsersSuite) TestUsers_GenerateUserToken() { //nolint:funlen
+func (s *UsersSuite) TestUsers_GenerateUserToken() {
 	t := s.T()
 	ctx := context.Background()
 
@@ -187,7 +217,7 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() { //nolint:funlen
 	t.Run("invalid user", func(t *testing.T) {
 		t.Parallel()
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
@@ -197,19 +227,19 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() { //nolint:funlen
 		users := s.newService(mockDB)
 
 		token, err := users.GenerateUserToken(ctx, schema.User{})
-		require.ErrorIs(t, err, services.ErrNotFound)
+		require.ErrorIs(t, err, errbase.ErrNotFound)
 		require.Empty(t, token)
 	})
 
 	t.Run("invalid password", func(t *testing.T) {
 		t.Parallel()
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
 			).
-			Run(setWisher(1, expectedUser)).
+			Run(setWisher(expectedUser)).
 			Return(nil)
 
 		testUser := schema.User{
@@ -219,19 +249,19 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() { //nolint:funlen
 		}
 
 		token, err := s.newService(mockDB).GenerateUserToken(ctx, testUser)
-		require.ErrorIs(t, err, services.ErrUnauthorized)
+		require.ErrorIs(t, err, errbase.ErrUnauthorized)
 		require.Empty(t, token)
 	})
 
 	t.Run("valid", func(t *testing.T) {
 		t.Parallel()
 
-		mockDB := &th.MockDBExecutor{}
+		mockDB := new(th.MockDBExecutor)
 		mockDB.
 			On("GetContext",
 				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
 			).
-			Run(setWisher(1, expectedUser)).
+			Run(setWisher(expectedUser)).
 			Return(nil)
 
 		testUser := schema.User{
@@ -243,5 +273,28 @@ func (s *UsersSuite) TestUsers_GenerateUserToken() { //nolint:funlen
 		token, err := s.newService(mockDB).GenerateUserToken(ctx, testUser)
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
+	})
+
+	t.Run("missing private key", func(t *testing.T) {
+		t.Parallel()
+
+		mockDB := new(th.MockDBExecutor)
+		mockDB.
+			On("GetContext",
+				ctx, new(userStorage.Wisher), mock.AnythingOfType("string"), mock.Anything,
+			).
+			Run(setWisher(expectedUser)).
+			Return(nil)
+
+		users := &service{
+			storage:    userStorage.New(mockDB),
+			privateKey: nil,
+		}
+
+		_, err := users.GenerateUserToken(ctx, schema.User{
+			Username: th.RandomString("username", 20),
+			Password: th.RandomString("pwd", 20),
+		})
+		require.ErrorIs(t, err, errMissingPrivateKey)
 	})
 }

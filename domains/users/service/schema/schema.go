@@ -31,8 +31,6 @@ var (
 
 // UserService - service handling user-related functionality.
 type UserService interface {
-	schema.Service
-
 	GetUser(ctx context.Context, username string) (*User, error)
 	SaveUser(ctx context.Context, user User) error
 	GenerateUserToken(ctx context.Context, user User) (string, error)

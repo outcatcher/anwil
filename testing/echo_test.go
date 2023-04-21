@@ -30,7 +30,7 @@ func (s *AnwilSuite) login() string {
 	response := s.requestJSON(
 		http.MethodPost,
 		parseRequestURL(t, "/api/v1/login"),
-		map[string]interface{}{
+		map[string]any{
 			"username": debugUsername,
 			"password": debugPassword,
 		},

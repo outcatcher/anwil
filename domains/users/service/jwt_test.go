@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/golang-jwt/jwt/v4"
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -90,7 +90,7 @@ func (s *AuthTests) TestValidateToken() {
 
 		_, err = validateToken(token, ed25519.PrivateKey(privateKey).Public())
 		require.ErrorIs(t, err, jwt.ErrTokenSignatureInvalid)
-		require.ErrorIs(t, err, services.ErrUnauthorized)
+		require.ErrorIs(t, err, errbase.ErrUnauthorized)
 	})
 
 	t.Run("invalid algorithm", func(t *testing.T) {
@@ -103,7 +103,7 @@ func (s *AuthTests) TestValidateToken() {
 
 		_, err = validateToken(signedString, s.publicKey)
 		require.ErrorIs(t, err, schema.ErrUnexpectedSignMethod)
-		require.ErrorIs(t, err, services.ErrUnauthorized)
+		require.ErrorIs(t, err, errbase.ErrUnauthorized)
 	})
 }
 

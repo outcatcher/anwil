@@ -38,6 +38,6 @@ func StorageInject(consumer, provider any) error {
 type QueryExecutor interface {
 	sqlx.ExtContext
 
-	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
-	NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error)
+	GetContext(ctx context.Context, dest any, query string, args ...any) error
+	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
 }

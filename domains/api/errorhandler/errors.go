@@ -11,7 +11,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/outcatcher/anwil/domains/core/validation"
 )
 
@@ -25,13 +25,13 @@ func errToHTTPError(err error) *echo.HTTPError {
 		return nil
 	case errors.As(err, &httpError):
 		return httpError
-	case errors.Is(err, services.ErrUnauthorized):
+	case errors.Is(err, errbase.ErrUnauthorized):
 		return echo.ErrUnauthorized
-	case errors.Is(err, services.ErrForbidden):
+	case errors.Is(err, errbase.ErrForbidden):
 		return echo.ErrForbidden
-	case errors.Is(err, services.ErrNotFound), errors.Is(err, sql.ErrNoRows):
+	case errors.Is(err, errbase.ErrNotFound), errors.Is(err, sql.ErrNoRows):
 		return &echo.HTTPError{Code: http.StatusNotFound, Message: err.Error()}
-	case errors.Is(err, services.ErrConflict):
+	case errors.Is(err, errbase.ErrConflict):
 		return &echo.HTTPError{Code: http.StatusConflict, Message: err.Error()}
 	case errors.Is(err, validation.ErrValidationFailed),
 		errors.As(err, &bindErr):

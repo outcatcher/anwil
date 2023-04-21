@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 )
 
@@ -19,12 +19,12 @@ const (
 
 // Ed25519KeyFunc returns a callback function to supply the key for verification.
 func Ed25519KeyFunc(key crypto.PublicKey) jwt.Keyfunc {
-	return func(token *jwt.Token) (interface{}, error) {
+	return func(token *jwt.Token) (any, error) {
 		_, ok := token.Method.(*jwt.SigningMethodEd25519)
 		if !ok {
 			return nil, fmt.Errorf(
 				"%w: %w: %s",
-				services.ErrUnauthorized, schema.ErrUnexpectedSignMethod, token.Header["alg"],
+				errbase.ErrUnauthorized, schema.ErrUnexpectedSignMethod, token.Header["alg"],
 			)
 		}
 
@@ -41,7 +41,7 @@ func validateToken(tokenString string, key crypto.PublicKey) (*schema.Claims, er
 		var validationErr *jwt.ValidationError
 
 		if errors.As(err, &validationErr) {
-			return nil, fmt.Errorf("%w: %w", services.ErrUnauthorized, err)
+			return nil, fmt.Errorf("%w: %w", errbase.ErrUnauthorized, err)
 		}
 
 		return nil, fmt.Errorf("error validating JWT: %w", err)

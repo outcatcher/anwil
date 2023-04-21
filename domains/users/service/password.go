@@ -1,13 +1,14 @@
 package service
 
 import (
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 	"fmt"
 
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/outcatcher/anwil/domains/core/validation"
 	pwdValidator "github.com/wagslane/go-password-validator"
 )
@@ -32,7 +33,7 @@ func encryptBytes(src string, key []byte) ([]byte, error) {
 }
 
 // encrypt encrypts password with a private key.
-func encrypt(src string, key []byte) (string, error) {
+func encrypt(src string, key ed25519.PrivateKey) (string, error) {
 	encrypted, err := encryptBytes(src, key)
 	if err != nil {
 		return "", err
@@ -54,7 +55,7 @@ func validatePassword(input, encrypted string, key []byte) error {
 	}
 
 	if !hmac.Equal(macInput, macCompared) {
-		return fmt.Errorf("%w: invalid password", services.ErrUnauthorized)
+		return fmt.Errorf("%w: invalid password", errbase.ErrUnauthorized)
 	}
 
 	return nil

@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
 )
 
@@ -43,7 +43,7 @@ func (u *userStorage) GetUser(ctx context.Context, username string) (*Wisher, er
 
 	err := u.db.GetContext(ctx, user, `SELECT * FROM wishers WHERE username = $1;`, username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, fmt.Errorf("no user found: %w", services.ErrNotFound)
+		return nil, fmt.Errorf("no user found: %w", errbase.ErrNotFound)
 	}
 
 	if err != nil {

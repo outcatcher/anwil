@@ -27,6 +27,7 @@ import (
 	"github.com/outcatcher/anwil/domains/core/config"
 	"github.com/outcatcher/anwil/domains/core/config/schema"
 	"github.com/outcatcher/anwil/domains/core/logging"
+	"github.com/outcatcher/anwil/domains/core/services"
 	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/outcatcher/anwil/domains/storage"
@@ -46,7 +47,7 @@ const (
 
 var debugPassword = th.RandomString("pWd!", 15)
 
-type mapBody map[string]interface{}
+type mapBody map[string]any
 
 // AnwilSuite - handlers tests.
 type AnwilSuite struct {
@@ -154,7 +155,7 @@ func mapToSlice(src map[string]string) []string {
 	return result
 }
 
-func startDBContainer( //nolint:funlen
+func startDBContainer(
 	ctx context.Context, t *testing.T, dbConfig schema.DatabaseConfiguration,
 ) {
 	t.Helper()
@@ -263,7 +264,7 @@ func waitForDBUp(ctx context.Context, t *testing.T, dockerClient *client.Client,
 func createDebugUser(ctx context.Context, t *testing.T, state svcSchema.ProvidingServices) {
 	t.Helper()
 
-	users, err := svcSchema.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
+	users, err := services.GetServiceFromProvider[usersSchema.UserService](state, usersSchema.ServiceID)
 	require.NoError(t, err)
 
 	err = users.SaveUser(ctx, usersSchema.User{

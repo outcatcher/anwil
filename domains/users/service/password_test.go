@@ -4,7 +4,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +16,7 @@ func TestPasswordWorkflow(t *testing.T) {
 	_, err := rand.Read(randomBytes)
 	require.NoError(t, err)
 
-	inputPassword := "truly-random-password"
+	inputPassword := "truly-random-password-new"
 
 	encrypted, err := encrypt(inputPassword, randomBytes)
 	require.NoError(t, err)
@@ -44,7 +44,21 @@ func TestValidate_invalid(t *testing.T) {
 	require.Len(t, encrypted, 128) // sha512 encrypted string is 128 bytes long
 
 	err = validatePassword(inputPassword+"no!", encrypted, randomBytes)
-	require.ErrorIs(t, err, services.ErrUnauthorized)
+	require.ErrorIs(t, err, errbase.ErrUnauthorized)
+}
+
+func TestValidate_invalidEncrypted(t *testing.T) {
+	t.Parallel()
+
+	randomBytes := make([]byte, 128)
+
+	_, err := rand.Read(randomBytes)
+	require.NoError(t, err)
+
+	inputPassword := "truly-random-password"
+
+	err = validatePassword(inputPassword, inputPassword, randomBytes)
+	require.Error(t, err)
 }
 
 func TestEncode_noSecret(t *testing.T) {
