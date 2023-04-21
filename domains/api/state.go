@@ -72,17 +72,6 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 	return server, nil
 }
 
-// WithServices uses selected services.
-func (s *State) WithServices(services ...svcSchema.Service) {
-	if s.services == nil {
-		s.services = make(svcSchema.ServiceMapping)
-	}
-
-	for _, svc := range services {
-		s.services[svc.ID()] = svc
-	}
-}
-
 // Logger returns configured logger.
 func (*State) Logger() *log.Logger {
 	return log.Default()
@@ -94,7 +83,7 @@ func (s *State) Config() *configSchema.Configuration {
 }
 
 // Service returns exact service instance by ID.
-func (s *State) Service(id svcSchema.ServiceID) svcSchema.Service {
+func (s *State) Service(id svcSchema.ServiceID) any {
 	return s.services[id]
 }
 
@@ -120,9 +109,7 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 		storage: db,
 	}
 
-	apiState.WithServices(users.New())
-
-	initialized, err := services.Initialize(ctx, apiState, apiState.services)
+	initialized, err := services.Initialize(ctx, apiState, users.NewUserService())
 	if err != nil {
 		return nil, fmt.Errorf("error initializing API: %w", err)
 	}

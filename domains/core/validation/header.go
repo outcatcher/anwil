@@ -21,8 +21,8 @@ var (
 	jwtHeaderRe = regexp.MustCompile(`^Bearer\s[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$`)
 
 	errorMessagesHeader = map[string]string{
-		"required":   "value of header '%s' is missing",
-		jwtHeaderKey: fmt.Sprintf("value of header '%%s' not matching pattern %s", jwtHeaderRe),
+		"required":   "is missing",
+		jwtHeaderKey: fmt.Sprintf("not matching pattern %s", jwtHeaderRe),
 	}
 
 	headerValidate = v10.New()
@@ -86,10 +86,10 @@ func ValidateHeaderCtx(ctx context.Context, v any) error {
 
 			msg := errorMessagesHeader[fieldError.Tag()] // message for exact failure tag
 			if msg == "" {
-				msg = "value of header '%s' is invalid"
+				msg = "is invalid"
 			}
 
-			fieldMessages[i] = fmt.Sprintf(msg, headerTag)
+			fieldMessages[i] = fmt.Sprintf("value of header '%s' %s", headerTag, msg)
 		}
 
 		return fmt.Errorf("%w:\n\t%s", ErrValidationFailed, strings.Join(fieldMessages, "\n\t"))

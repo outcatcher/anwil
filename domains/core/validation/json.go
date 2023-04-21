@@ -28,10 +28,7 @@ func getJSONTag(v any, fieldName string) string {
 		typ = typ.Elem()
 	}
 
-	fld, ok := typ.FieldByName(fieldName)
-	if !ok {
-		return ""
-	}
+	fld, _ := typ.FieldByName(fieldName)
 
 	return fld.Tag.Get("json")
 }

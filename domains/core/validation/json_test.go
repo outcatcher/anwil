@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	v10 "github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,4 +77,16 @@ func TestValidateJSONCtx_ok(t *testing.T) {
 			require.NoError(t, ValidateJSONCtx(context.Background(), data.value))
 		})
 	}
+}
+
+func TestValidateJSONCtx_invalidData(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	targetErr := new(v10.InvalidValidationError)
+
+	err := ValidateJSONCtx(ctx, nil)
+	require.ErrorAs(t, err, &targetErr)
+	t.Log(err)
 }

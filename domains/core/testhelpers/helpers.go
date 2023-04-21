@@ -8,6 +8,8 @@ import (
 	"crypto/rand"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -32,12 +34,9 @@ func ClosingRecorder(t *testing.T) *httptest.ResponseRecorder {
 	recorder := &httptest.ResponseRecorder{Body: new(bytes.Buffer)}
 
 	t.Cleanup(func() {
-		result := recorder.Result()
-		if result == nil {
-			return
+		if result := recorder.Result(); result != nil {
+			require.NoError(t, result.Body.Close())
 		}
-
-		_ = result.Body.Close()
 	})
 
 	return recorder

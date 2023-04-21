@@ -1,4 +1,7 @@
-package schema
+/*
+Package errbase contains internal error codes
+*/
+package errbase
 
 import (
 	"errors"

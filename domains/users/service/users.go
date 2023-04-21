@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	"github.com/outcatcher/anwil/domains/users/storage"
 )
@@ -41,9 +41,9 @@ func (u *service) SaveUser(ctx context.Context, user schema.User) error {
 	_, err = u.GetUser(ctx, user.Username)
 
 	switch {
-	case errors.Is(err, services.ErrNotFound):
+	case errors.Is(err, errbase.ErrNotFound):
 	case err == nil:
-		return fmt.Errorf("%w: user %s already exist", services.ErrConflict, user.Username)
+		return fmt.Errorf("%w: user %s already exist", errbase.ErrConflict, user.Username)
 	default:
 		return err
 	}
@@ -63,8 +63,8 @@ func (u *service) SaveUser(ctx context.Context, user schema.User) error {
 // GenerateUserToken validates user credentials and returns token.
 func (u *service) GenerateUserToken(ctx context.Context, user schema.User) (string, error) {
 	existing, err := u.GetUser(ctx, user.Username)
-	if errors.Is(err, services.ErrNotFound) {
-		return "", fmt.Errorf("user %s: %w", user.Username, services.ErrNotFound)
+	if errors.Is(err, errbase.ErrNotFound) {
+		return "", fmt.Errorf("user %s: %w", user.Username, errbase.ErrNotFound)
 	}
 
 	if err != nil {

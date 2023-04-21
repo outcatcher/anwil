@@ -107,3 +107,17 @@ func TestValidateHeaderCtx_invalidData(t *testing.T) {
 	require.ErrorAs(t, err, &targetErr)
 	t.Log(err)
 }
+
+func TestValidateHeaderCtx_errFallback(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	v := struct {
+		Field string `header:"Field" validate:"md5"`
+	}{Field: "132"}
+
+	err := ValidateHeaderCtx(ctx, v)
+	require.ErrorIs(t, err, ErrValidationFailed)
+	t.Log(err)
+}

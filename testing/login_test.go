@@ -22,7 +22,7 @@ func (s *AnwilSuite) TestLoginInvalidPassword() {
 	response := s.requestJSON(
 		http.MethodPost,
 		parseRequestURL(t, "/api/v1/login"),
-		map[string]interface{}{
+		map[string]any{
 			"username": debugUsername,
 			"password": "asdafqfqwef!",
 		},

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	services "github.com/outcatcher/anwil/domains/core/services/schema"
+	"github.com/outcatcher/anwil/domains/core/errbase"
 	th "github.com/outcatcher/anwil/domains/core/testhelpers"
 	"github.com/stretchr/testify/require"
 )
@@ -35,12 +35,12 @@ func TestConvertErrors(t *testing.T) {
 		expectedBody string
 	}{
 		{
-			services.ErrUnauthorized,
+			errbase.ErrUnauthorized,
 			http.StatusUnauthorized,
 			http.StatusText(http.StatusUnauthorized),
 		},
 		{
-			services.ErrForbidden,
+			errbase.ErrForbidden,
 			http.StatusForbidden,
 			http.StatusText(http.StatusForbidden),
 		},
@@ -50,14 +50,14 @@ func TestConvertErrors(t *testing.T) {
 			errForTest.Error(),
 		},
 		{
-			services.ErrConflict,
+			errbase.ErrConflict,
 			http.StatusConflict,
-			services.ErrConflict.Error(),
+			errbase.ErrConflict.Error(),
 		},
 		{
-			services.ErrNotFound,
+			errbase.ErrNotFound,
 			http.StatusNotFound,
-			services.ErrNotFound.Error(),
+			errbase.ErrNotFound.Error(),
 		},
 	}
 
