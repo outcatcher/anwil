@@ -11,8 +11,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/outcatcher/anwil/domains/api/commonhandlers"
 	"github.com/outcatcher/anwil/domains/api/errorhandler"
-	"github.com/outcatcher/anwil/domains/api/handlers"
 	"github.com/outcatcher/anwil/domains/api/middlewares"
 	"github.com/outcatcher/anwil/domains/core/config"
 	configSchema "github.com/outcatcher/anwil/domains/core/config/schema"
@@ -27,17 +27,19 @@ const defaultTimeout = time.Minute
 
 // State holds general application state.
 type State struct {
+	// Shared configuration
 	cfg *configSchema.Configuration
 
+	// Shared storage driver, i.e. *sqlx.DB
 	storage storageSchema.QueryExecutor
 
+	// Actual initialized services
 	services svcSchema.ServiceMapping
+	// Functions to add handlers after HTTP server is created
+	addHandlerFuncs []svcSchema.AddHandlersFunc
 }
 
-// Server creates new API server instance.
-func (s *State) Server(ctx context.Context) (*http.Server, error) {
-	cfg := s.Config()
-
+func (s *State) initEngine() (*echo.Echo, error) {
 	engine := echo.New()
 
 	engine.HTTPErrorHandler = errorhandler.HandleErrors()
@@ -49,9 +51,28 @@ func (s *State) Server(ctx context.Context) (*http.Server, error) {
 		middlewares.RequireJSON,
 	)
 
-	// запросы не должны использовать родительский контекст
-	if err := handlers.PopulateEndpoints(ctx, engine, s); err != nil {
-		return nil, fmt.Errorf("error populating endpoints: %w", err)
+	engine.Static("/static", s.Config().API.StaticPath)
+
+	baseGroup := engine.Group("/api/v1")
+	secGroup := baseGroup.Group("", middlewares.JWTAuth(s))
+
+	for _, addHandlersFunc := range s.addHandlerFuncs {
+		err := addHandlersFunc(baseGroup, secGroup)
+		if err != nil {
+			return nil, fmt.Errorf("error adding handlers for the service: %w", err)
+		}
+	}
+
+	return engine, nil
+}
+
+// Server creates new API server instance.
+func (s *State) Server(ctx context.Context) (*http.Server, error) {
+	cfg := s.Config()
+
+	engine, err := s.initEngine()
+	if err != nil {
+		return nil, fmt.Errorf("error creating server: %w", err)
 	}
 
 	server := &http.Server{ //nolint:exhaustruct
@@ -109,12 +130,32 @@ func Init(ctx context.Context, configPath string) (*State, error) {
 		storage: db,
 	}
 
-	initialized, err := services.Initialize(ctx, apiState, users.NewUserService())
+	usedServices := []svcSchema.ServiceDefinition{users.NewUserService()}
+
+	initialized, err := services.Initialize(ctx, apiState, usedServices...)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing API: %w", err)
 	}
 
 	apiState.services = initialized
+
+	// Pre-initializing handlers. At this point there is no server, so populating the functions to be
+	// called to add handlers when it will be ready.
+	//
+	// To be additionally considered: is there a need for service initialization before creating the server?
+	addHandlerFuncs := make([]svcSchema.AddHandlersFunc, 1, len(usedServices)+1)
+
+	addHandlerFuncs[0] = commonhandlers.AddEchoHandlers
+
+	for _, svc := range usedServices {
+		if svc.InitHandlersFunc == nil {
+			continue // some services can possibly have no endpoints
+		}
+
+		addHandlerFuncs = append(addHandlerFuncs, svc.InitHandlersFunc(apiState))
+	}
+
+	apiState.addHandlerFuncs = addHandlerFuncs
 
 	return apiState, nil
 }
