@@ -14,6 +14,7 @@ import (
 	"github.com/outcatcher/anwil/domains/core/services"
 	svcSchema "github.com/outcatcher/anwil/domains/core/services/schema"
 	storageSchema "github.com/outcatcher/anwil/domains/storage/schema"
+	"github.com/outcatcher/anwil/domains/users/handlers"
 	"github.com/outcatcher/anwil/domains/users/service/schema"
 	userStorage "github.com/outcatcher/anwil/domains/users/storage"
 )
@@ -69,8 +70,9 @@ func userServiceInit(_ context.Context, state any) (any, error) {
 // NewUserService returns new user service definition.
 func NewUserService() svcSchema.ServiceDefinition {
 	return svcSchema.ServiceDefinition{
-		ID:        schema.ServiceID,
-		Init:      userServiceInit,
-		DependsOn: nil,
+		ID:               schema.ServiceID,
+		Init:             userServiceInit,
+		DependsOn:        nil,
+		InitHandlersFunc: handlers.AddUserHandlers,
 	}
 }

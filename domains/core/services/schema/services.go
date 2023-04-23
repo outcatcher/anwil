@@ -24,11 +24,16 @@ type ServiceInitFunc func(ctx context.Context, state any) (any, error)
 
 // ServiceDefinition contains service metadata and initialization.
 type ServiceDefinition struct {
+	// Unique service ID allowing to build service dependency tree
 	ID ServiceID
-	// Init return initialized service instance with given state.
+	// Init is a function used to initialized service instance with given state
 	Init ServiceInitFunc
-	// DependsOn list IDs of required services.
+	// DependsOn list IDs of the required services.
 	DependsOn []ServiceID
+	// InitHandlersFunc is a function for initializing service-related handlers
+	// after the service is initialized.
+	// Can remain `nil` if service does not provide API endpoints.
+	InitHandlersFunc func(state ProvidingServices) AddHandlersFunc
 }
 
 // ServiceMapping - ServiceID to Service mapping.
